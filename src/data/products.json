@@ -4324,7 +4324,7 @@
     "name": "MA-57V Double Kolon",
     "description": "Yüksek performanslı CNC dik işleme merkezi.",
     "category": "cnc-dik-isleme",
-    "image": "/images/KİNG MA-57 DOUBLE KOLON CNC.jpg",
+    "image": "/uploads/1741282841854-kingedm540.png",
     "specs": [
       {
         "label": "Ebat",
@@ -4389,7 +4389,10 @@
       "Divizör",
       "Fanuc,Siemens,Heidenhain İşletim Sistemi"
     ],
-    "updatedAt": "2024-03-21T10:00:00.000Z"
+    "updatedAt": "2025-03-06T17:40:41.855Z",
+    "images": [
+      "/uploads/1741282841854-kingedm540.png"
+    ]
   },
   {
     "id": "mt-5765v-double-kolon",
@@ -4875,5 +4878,124 @@
     "specs": [],
     "standardAccessories": [],
     "optionalAccessories": []
+  },
+  {
+    "id": "test2",
+    "type": "products",
+    "name": "test",
+    "description": "test",
+    "category": "cnc-double",
+    "image": "/uploads/cff8a2a3-07b1-45b6-8e7f-779edd8854b4-kingedm540.png",
+    "images": [
+      "/uploads/cff8a2a3-07b1-45b6-8e7f-779edd8854b4-kingedm540.png"
+    ],
+    "specs": [
+      {
+        "label": "test",
+        "value": "test"
+      }
+    ],
+    "standardAccessories": [
+      "test",
+      "test"
+    ],
+    "optionalAccessories": [
+      "test",
+      "test"
+    ]
+  },
+  {
+    "id": "test3",
+    "type": "products",
+    "name": "Test",
+    "description": "test",
+    "category": "pnc-serisi",
+    "image": "/images/placeholder-product.jpg",
+    "images": [],
+    "specs": [
+      {
+        "label": "test",
+        "value": "test"
+      }
+    ],
+    "standardAccessories": [
+      "test"
+    ],
+    "optionalAccessories": [
+      "test"
+    ]
+  },
+  {
+    "id": "test4",
+    "type": "products",
+    "name": "test",
+    "description": "test",
+    "category": "cnc-double",
+    "image": "/images/placeholder-product.jpg",
+    "images": [],
+    "specs": [],
+    "standardAccessories": [],
+    "optionalAccessories": []
+  },
+  {
+    "id": "tr",
+    "type": "products",
+    "name": "tr",
+    "description": "tr",
+    "category": "cnc-double",
+    "image": "/images/placeholder-product.jpg",
+    "images": [],
+    "specs": [
+      {
+        "label": "tr",
+        "value": "tr"
+      }
+    ],
+    "standardAccessories": [
+      "tr"
+    ],
+    "optionalAccessories": [
+      "tr"
+    ],
+    "translations": {}
+  },
+  {
+    "id": "turkish",
+    "type": "products",
+    "name": "TURKISH",
+    "description": "TURKISH",
+    "category": "cnc-double",
+    "image": "/images/placeholder-product.jpg",
+    "images": [],
+    "specs": [
+      {
+        "label": "TURKISH",
+        "value": "TURKISH"
+      }
+    ],
+    "standardAccessories": [
+      "TURKISH"
+    ],
+    "optionalAccessories": [
+      "TURKISH"
+    ],
+    "translations": {
+      "en": {
+        "name": "ENGLISH",
+        "description": "ENGLISH",
+        "specs": [
+          {
+            "label": "ENGLISH",
+            "value": "ENGLISH"
+          }
+        ],
+        "standardAccessories": [
+          "ENGLISH"
+        ],
+        "optionalAccessories": [
+          "ENGLISH"
+        ]
+      }
+    }
   }
 ]

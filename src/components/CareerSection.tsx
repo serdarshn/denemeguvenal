@@ -3,8 +3,43 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useClientTranslation } from '@/lib/i18n';
+import { useState, useEffect } from 'react';
 
 export default function CareerSection() {
+  const { t, initialized } = useClientTranslation(['common']);
+  const [mounted, setMounted] = useState(false);
+  
+  // Client tarafında olduğumuzu kontrol et
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Client tarafında ve çeviriler yüklenmediyse yükleme durumunu göster
+  if (!mounted || !initialized) {
+    return (
+      <section className="py-24 bg-background relative overflow-hidden">
+        <div className="container mx-auto px-4 relative">
+          <div className="max-w-7xl mx-auto">
+            <div className="animate-pulse space-y-6">
+              <div className="h-10 bg-gray-200 rounded w-64"></div>
+              <div className="h-4 bg-gray-200 rounded w-full max-w-lg"></div>
+              <div className="grid sm:grid-cols-2 gap-6 pt-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div className="w-12 h-12 bg-gray-200 rounded-xl mb-4"></div>
+                    <div className="h-5 bg-gray-200 rounded w-32 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+  
   return (
     <section className="py-24 bg-background relative overflow-hidden">
       {/* Background Elements */}
@@ -35,18 +70,18 @@ export default function CareerSection() {
                 className="space-y-6"
               >
                 <h2 className="text-4xl md:text-5xl font-bold text-text">
-                  Kariyer <span className="text-primary">Fırsatları</span>
+                  {t('careerSection.title', 'Kariyer')} <span className="text-primary">{t('careerSection.titleHighlight', 'Fırsatları')}</span>
                 </h2>
                 <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                  Güvenal Makina&apos;da kariyer fırsatları ve açık pozisyonlar hakkında bilgi alın
+                  {t('careerSection.description', 'Güvenal Makina\'da kariyer fırsatları ve açık pozisyonlar hakkında bilgi alın')}
                 </p>
 
                 {/* Benefits */}
                 <div className="grid sm:grid-cols-2 gap-6 pt-4">
                   {[
                     {
-                      title: 'Sürekli Gelişim',
-                      description: 'Profesyonel gelişim programları ve eğitim fırsatları',
+                      title: t('careerSection.benefits.development.title', 'Sürekli Gelişim'),
+                      description: t('careerSection.benefits.development.description', 'Profesyonel gelişim programları ve eğitim fırsatları'),
                       icon: (
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -54,8 +89,8 @@ export default function CareerSection() {
                       )
                     },
                     {
-                      title: 'Dinamik Ortam',
-                      description: 'Yenilikçi ve teknoloji odaklı çalışma kültürü',
+                      title: t('careerSection.benefits.environment.title', 'Dinamik Ortam'),
+                      description: t('careerSection.benefits.environment.description', 'Yenilikçi ve teknoloji odaklı çalışma kültürü'),
                       icon: (
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -63,8 +98,8 @@ export default function CareerSection() {
                       )
                     },
                     {
-                      title: 'Sosyal Haklar',
-                      description: 'Rekabetçi maaş ve kapsamlı yan haklar paketi',
+                      title: t('careerSection.benefits.benefits.title', 'Sosyal Haklar'),
+                      description: t('careerSection.benefits.benefits.description', 'Rekabetçi maaş ve kapsamlı yan haklar paketi'),
                       icon: (
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -72,8 +107,8 @@ export default function CareerSection() {
                       )
                     },
                     {
-                      title: 'Takım Ruhu',
-                      description: 'Destekleyici ve işbirlikçi çalışma ortamı',
+                      title: t('careerSection.benefits.teamwork.title', 'Takım Ruhu'),
+                      description: t('careerSection.benefits.teamwork.description', 'Destekleyici ve işbirlikçi çalışma ortamı'),
                       icon: (
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -103,7 +138,7 @@ export default function CareerSection() {
                     href="/kariyer"
                     className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl font-medium hover:bg-primary-600 transition-colors shadow-lg shadow-primary/25"
                   >
-                    Açık Pozisyonları İncele
+                    {t('careerSection.viewPositions', 'Açık Pozisyonları İncele')}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
@@ -126,7 +161,7 @@ export default function CareerSection() {
                   <div className="aspect-[4/3] rounded-xl overflow-hidden relative">
                     <Image
                       src="/images/kariyer.webp"
-                      alt="Kariyer Fırsatları"
+                      alt={t('careerSection.imageAlt', 'Kariyer Fırsatları')}
                       fill
                       className="object-cover"
                     />

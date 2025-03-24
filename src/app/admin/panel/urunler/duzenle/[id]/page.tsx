@@ -6,10 +6,11 @@ import { toast } from 'react-hot-toast';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 import { use } from 'react';
 import Image from 'next/image';
+import { CATEGORIES } from '../../ekle/page';
 
 interface Specification {
   id: string;
-  name: string;
+  label: string;
   value: string;
 }
 
@@ -18,10 +19,38 @@ interface Campaign {
   endDate: string;
 }
 
+interface CategoryBase {
+  id: string;
+  name: string;
+  subcategories?: CategoryBase[];
+}
+
 const initializeCampaign = () => ({
   type: 'discount' as const,
   endDate: new Date().toISOString().split('T')[0]
 });
+
+// Kategori seçeneklerini düzleştiren yardımcı fonksiyon
+const flattenCategories = (categories: CategoryBase[], prefix = '') => {
+  let options: { id: string; name: string }[] = [];
+  
+  categories.forEach(category => {
+    // Ana kategoriyi ekle
+    options.push({
+      id: category.id,
+      name: prefix ? `${prefix} > ${category.name}` : category.name
+    });
+    
+    // Alt kategorileri ekle
+    if (category.subcategories) {
+      const newPrefix = prefix ? `${prefix} > ${category.name}` : category.name;
+      const subOptions = flattenCategories(category.subcategories, newPrefix);
+      options = [...options, ...subOptions];
+    }
+  });
+  
+  return options;
+};
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -37,14 +66,23 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     category: '',
     price: '',
     oldPrice: '',
-    type: '',
+    type: 'products',
     existingImages: [] as string[],
     newImages: [] as File[],
     specifications: [] as Specification[],
     standardAccessories: [] as string[],
     optionalAccessories: [] as string[],
     slug: '',
-    campaign: null as Campaign | null
+    campaign: null as Campaign | null,
+    translations: {
+      en: {
+        name: '',
+        description: '',
+        specifications: [] as Specification[],
+        standardAccessories: [] as string[],
+        optionalAccessories: [] as string[]
+      }
+    }
   });
 
   // Ürün tipini ayarla
@@ -84,12 +122,22 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         // Specs'i specifications formatına dönüştür
         const specifications = product.specs ? product.specs.map((spec: { label: string; value: string }, index: number) => ({
           id: `spec-${index}`,
-          name: spec.label || '',
+          label: spec.label || '',
           value: spec.value || ''
         })) : [];
 
+        // İngilizce çevirileri specifications formatına dönüştür
+        const englishSpecs = product.translations?.en?.specs ? 
+          product.translations.en.specs.map((spec: { label: string; value: string }, index: number) => ({
+            id: `spec-${index}`,
+            label: spec.label || '',
+            value: spec.value || ''
+          })) : [];
+
         console.log('Gelen ürün verileri:', product);
         console.log('Dönüştürülen specifications:', specifications);
+        console.log('İngilizce specifications:', englishSpecs);
+        console.log('İngilizce çeviriler:', product.translations?.en);
         
         setFormData(prev => ({
           ...prev,
@@ -105,7 +153,16 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           standardAccessories: product.standardAccessories || [],
           optionalAccessories: product.optionalAccessories || [],
           slug: product.slug || '',
-          campaign: product.campaign || null
+          campaign: product.campaign || null,
+          translations: {
+            en: {
+              name: product.translations?.en?.name || '',
+              description: product.translations?.en?.description || '',
+              specifications: englishSpecs,
+              standardAccessories: product.translations?.en?.standardAccessories || [],
+              optionalAccessories: product.translations?.en?.optionalAccessories || []
+            }
+          }
         }));
       } catch (error) {
         console.error('Ürün getirme hatası:', error);
@@ -149,7 +206,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const addSpecification = () => {
     const newSpec = { 
       id: `spec-${formData.specifications.length}`, 
-      name: '', 
+      label: '', 
       value: '' 
     };
     setFormData({
@@ -165,7 +222,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     });
   };
 
-  const changeSpecification = (id: string, field: 'name' | 'value', value: string) => {
+  const changeSpecification = (id: string, field: 'label' | 'value', value: string) => {
     setFormData(prev => ({
       ...prev,
       specifications: prev.specifications.map((spec) =>
@@ -188,6 +245,14 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       
       const formDataToSend = new FormData();
       formDataToSend.append('id', productId);
+      
+      console.log('Güncellenen ürün verileri:', {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        type: formData.type
+      });
+      
       formDataToSend.append('data', JSON.stringify({
         name: formData.name,
         description: formData.description,
@@ -196,12 +261,24 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         oldPrice: formData.oldPrice,
         type: formData.type,
         specs: formData.specifications.map(spec => ({
-          label: spec.name,
+          label: spec.label,
           value: spec.value
         })),
         standardAccessories: formData.standardAccessories.filter(acc => acc.trim()),
         optionalAccessories: formData.optionalAccessories.filter(acc => acc.trim()),
-        campaign: formData.campaign
+        campaign: formData.campaign,
+        translations: {
+          en: formData.translations.en.name || formData.translations.en.description ? {
+            name: formData.translations.en.name,
+            description: formData.translations.en.description,
+            specifications: formData.translations.en.specifications.map(spec => ({
+              label: spec.label,
+              value: spec.value
+            })),
+            standardAccessories: formData.translations.en.standardAccessories,
+            optionalAccessories: formData.translations.en.optionalAccessories
+          } : undefined
+        }
       }));
       
       // Mevcut resimleri ekle
@@ -319,7 +396,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">
+        <h1 className="text-2xl font-bold text-text mb-8">
           Ürün Düzenle
         </h1>
 
@@ -332,10 +409,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Temel Bilgiler */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Temel Bilgiler</h2>
+            <h2 className="text-lg font-semibold text-text mb-4">Temel Bilgiler</h2>
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text mb-1">
                   Ürün Adı
                 </label>
                 <input
@@ -343,12 +420,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                   required
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text mb-1">
                   Açıklama
                 </label>
                 <textarea
@@ -356,61 +433,46 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   rows={4}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text mb-1">
                   Kategori
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text"
                 >
                   <option value="">Kategori Seçin</option>
-                  {formData.type === 'products' && (
-                    <>
-                      <option value="cnc-double">CNC Double Kolon Dik İşleme Merkezi</option>
-                      <option value="dalma-erozyon">Dalma Erozyon Tezgahları</option>
-                      <option value="kalipci-freze">Kalıpçı Freze Tezgahları</option>
-                      <option value="universal-kalipci-freze">Üniversal Kalıpçı Freze Tezgahları</option>
-                      <option value="koc-kafa-freze">Koç Kafa Universal Freze</option>
-                      <option value="taslama">Taşlama Tezgahları</option>
-                      <option value="universal-torna">Universal Torna Tezgahları</option>
-                      <option value="masa-ustu-torna">Masa Üstü Torna Tezgahları</option>
-                      <option value="radyal-matkap">Radyal Matkap Tezgahları</option>
-                      <option value="sutunlu-matkap">Şanzımanlı & Kayışlı Sütunlu Matkaplar</option>
-                      <option value="testere">Testere Tezgahları</option>
-                      <option value="kilavuz">Kılavuz Çekme Tezgahları</option>
-                    </>
-                  )}
-                  {formData.type === 'used' && (
-                    <option value="all">Tüm İkinci El Ürünler</option>
-                  )}
-                  {formData.type === 'spare' && (
-                    <option value="all">Tüm Yedek Parçalar</option>
-                  )}
-                  {formData.type === 'accessories' && (
-                    <option value="all">Tüm Aksesuarlar</option>
-                  )}
-                  {formData.type === 'campaign' && (
-                    <option value="all-campaigns">Tüm Kampanyalar</option>
+                  {formData.type === 'products' ? (
+                    flattenCategories(CATEGORIES[formData.type as keyof typeof CATEGORIES] || []).map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.name}
+                      </option>
+                    ))
+                  ) : (
+                    CATEGORIES[formData.type as keyof typeof CATEGORIES]?.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))
                   )}
                 </select>
               </div>
 
               {formData.type !== 'campaign' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text mb-1">
                     Fiyat (TL)
                   </label>
                   <input
                     type="number"
                     value={formData.price}
                     onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
                   />
                 </div>
               )}
@@ -419,80 +481,62 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
           {/* Görseller */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Ürün Görselleri</h2>
+            <h2 className="text-lg font-semibold text-text mb-4">Ürün Görselleri</h2>
             <div className="space-y-4">
               <input
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handleImageChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary hover:file:bg-primary-100"
+                className="block w-full text-sm text-text-light file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary hover:file:bg-primary-100"
               />
-              
-              {/* Mevcut Görseller */}
-              {formData.existingImages.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Mevcut Görseller</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {formData.existingImages.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <div className="aspect-square relative rounded-lg overflow-hidden bg-gray-100">
-                          <Image
-                            src={image}
-                            alt={`Mevcut ürün görseli ${index + 1}`}
-                            width={100}
-                            height={100}
-                            className="rounded-lg object-cover"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeExistingImage(index)}
-                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <FaTrash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {formData.existingImages.map((image, index) => (
+                  <div key={`existing-${index}`} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                    <Image
+                      src={image}
+                      alt={`Mevcut ürün görseli ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImage(index)}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-                </div>
-              )}
-
-              {/* Yeni Görseller */}
-              {formData.newImages.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Yeni Görseller</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {formData.newImages.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <div className="aspect-square relative rounded-lg overflow-hidden bg-gray-100">
-                          <Image
-                            src={URL.createObjectURL(image)}
-                            alt={`Yeni yüklenen ürün görseli ${index + 1}`}
-                            width={100}
-                            height={100}
-                            className="rounded-lg object-cover"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeNewImage(index)}
-                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <FaTrash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                ))}
+                {formData.newImages.map((image, index) => (
+                  <div key={`new-${index}`} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                    <Image
+                      src={URL.createObjectURL(image)}
+                      alt={`Yeni ürün görseli ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeNewImage(index)}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Özellikler */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Teknik Özellikler</h2>
+              <h2 className="text-lg font-semibold text-text">Teknik Özellikler</h2>
               <button
                 type="button"
                 onClick={addSpecification}
@@ -508,17 +552,17 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                   <div className="grid grid-cols-2 gap-4 flex-grow">
                     <input
                       type="text"
-                      value={spec.name || ''}
-                      onChange={(e) => changeSpecification(spec.id, 'name', e.target.value)}
+                      value={spec.label || ''}
+                      onChange={(e) => changeSpecification(spec.id, 'label', e.target.value)}
                       placeholder="Özellik (örn: Boyut)"
-                      className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent w-full"
+                      className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
                     />
                     <input
                       type="text"
                       value={spec.value || ''}
                       onChange={(e) => changeSpecification(spec.id, 'value', e.target.value)}
                       placeholder="Değer (örn: 10x15 cm)"
-                      className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent w-full"
+                      className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
                     />
                   </div>
                   <button
@@ -539,7 +583,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               {/* Standart Aksesuarlar */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Standart Aksesuarlar</h2>
+                  <h2 className="text-lg font-semibold text-text">Standart Aksesuarlar</h2>
                   <button
                     type="button"
                     onClick={handleStandardAccessoryAdd}
@@ -557,7 +601,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                         value={accessory || ''}
                         onChange={(e) => handleStandardAccessoryChange(index, e.target.value)}
                         placeholder="Aksesuar adı"
-                        className="flex-grow px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="flex-grow px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
                       />
                       <button
                         type="button"
@@ -574,7 +618,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               {/* Opsiyonel Aksesuarlar */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Opsiyonel Aksesuarlar</h2>
+                  <h2 className="text-lg font-semibold text-text">Opsiyonel Aksesuarlar</h2>
                   <button
                     type="button"
                     onClick={handleOptionalAccessoryAdd}
@@ -592,7 +636,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                         value={accessory || ''}
                         onChange={(e) => handleOptionalAccessoryChange(index, e.target.value)}
                         placeholder="Aksesuar adı"
-                        className="flex-grow px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="flex-grow px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
                       />
                       <button
                         type="button"
@@ -611,11 +655,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           {/* Kampanya Bilgileri */}
           {formData.type === 'campaign' && (
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Kampanya Bilgileri</h2>
+              <h2 className="text-lg font-semibold text-text mb-4">Kampanya Bilgileri</h2>
               <div className="grid grid-cols-1 gap-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-text mb-1">
                       Eski Fiyat (TL)
                     </label>
                     <input
@@ -627,7 +671,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-text mb-1">
                       Yeni Fiyat (TL)
                     </label>
                     <input
@@ -641,7 +685,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text mb-1">
                     Kampanya Bitiş Tarihi
                   </label>
                   <input

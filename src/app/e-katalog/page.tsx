@@ -4,6 +4,8 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useClientTranslation } from '@/lib/i18n';
+import { useEffect } from 'react';
 
 // PDF görüntüleyiciyi dinamik olarak import ediyoruz
 const PDFViewer = dynamic(() => import('@/components/PDFViewer'), {
@@ -67,9 +69,57 @@ const catalogData = {
   ],
 };
 
+const catalogDataEn = {
+  'CNC Machining Centers': [
+    { title: 'KING CNC VERTICAL MACHINING', file: 'KİNG CNC DİK İŞLEME.pdf' },
+    { title: 'KING MV-1160 CNC', file: 'KİNG MV-1160 CNC.pdf' },
+    { title: 'KING DOUBLE COLUMN CNC', file: 'KİNG DOUBLE KOLON CNC.pdf' },
+    { title: 'KING DOUBLE COLUMN TECHNICAL TABLE', file: 'KİNG DOUBLE KOLON TEKNİK TABLO.pdf' },
+    { title: 'KING CNC MV SERIES', file: 'KİNG CNC MV SERİSİ.pdf' },
+  ],
+  'EDM Machines': [
+    { title: 'KING EDM ZNC-PNC-CNC', file: 'KİNG EDM ZNC-PNC-CNC.pdf' },
+    { title: 'KING EDM CNC L-TYPE EROSION', file: 'KİNG EDM CNC L-TİPİ EREZYON.pdf' },
+    { title: 'BEST CNC-PNC-ZNC EROSION', file: 'BEST CNC-PNC-ZNC EREZYON.pdf' },
+    { title: 'BEST C TYPE LARGE POOL EROSION', file: 'BEST C TİPİ BÜYÜK HAVUZ EREZYON.pdf' },
+  ],
+  'Lathe Machines': [
+    { title: 'CM 6241 X 1000 MM', file: 'CM 6241 X 1000 MM.pdf' },
+    { title: 'JETCO JML 1M SERIES', file: 'JETCO JML 1M SERİSİ.pdf' },
+    { title: 'CS-6266 -2 M - 3 M', file: 'CS-6266 -2 M - 3 M.pdf' },
+    { title: 'CS-6250 1.5M-2M', file: 'CS-6250 1.5M-2M.pdf' },
+    { title: 'KING YSM 26 SHB - CHB', file: 'KİNG YSM 26 SHB - CHB.pdf' },
+    { title: 'KING SZ A8 V - VS', file: 'KİNG SZ A8 V - VS.pdf' },
+    { title: 'KING SZ 2200 HVD - HVSD', file: 'KİNG SZ 2200 HVD - HVSD.pdf' },
+    { title: 'KING SZ 1820 V - VS', file: 'KİNG SZ 1820 V - VS.pdf' },
+  ],
+  'Milling Machines': [
+    { title: 'KG SUPER XL6436CLW RAM TYPE', file: 'KG SUPER XL6436CLW KOÇ KAFA.pdf' },
+    { title: 'KG SUPER X6325W', file: 'KG SUPER X6325W.pdf' },
+    { title: 'KG SUPER KG3-KG4', file: 'KG SUPER KG3-KG4.pdf' },
+    { title: 'JETCO 4A - 6', file: 'JETCO 4A - 6.pdf' },
+    { title: 'JETCO 2 - 3Q', file: 'JETCO 2 - 3Q.pdf' },
+  ],
+  'Other Machines': [
+    { title: 'BAND SAW', file: 'ŞERİT TESTERE.pdf' },
+    { title: 'GEARED - COLUMN DRILL', file: 'ŞANZUMANLI - SÜTUNLU MATKAP.pdf' },
+    { title: 'KING GRINDER', file: 'KİNG GRİNDER TAŞLAMA.pdf' },
+    { title: 'JETCO RADIAL DRILL', file: 'JETCO RADYAL MATKAP.pdf' },
+    { title: 'KG SUPER Z 3040 RADIAL', file: 'KG SUPER Z 3040 RADYAL.pdf' },
+  ],
+};
+
 export default function CatalogPage() {
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const { locale } = useClientTranslation(['common']);
+  const [isEnglish, setIsEnglish] = useState(false);
+  
+  useEffect(() => {
+    setIsEnglish(locale === 'en');
+  }, [locale]);
+
+  const catalogToUse = isEnglish ? catalogDataEn : catalogData;
 
   function handlePdfClick(pdfFile: string) {
     setSelectedPdf(`/catalogs/${pdfFile}`);
@@ -92,11 +142,13 @@ export default function CatalogPage() {
               {/* Left Side - Text */}
               <div className="relative z-10 py-12">
                 <h1 className="text-6xl font-bold text-white mb-4">
-                  E-Katalog
+                  E-Catalog
                 </h1>
                 <div className="h-1 w-20 bg-white mb-4"></div>
                 <p className="text-lg text-white/90">
-                  Ürün kataloğumuzu indirebilir veya online görüntüleyebilirsiniz
+                  {isEnglish 
+                    ? 'You can download or view our product catalog online'
+                    : 'Ürün kataloğumuzu indirebilir veya online görüntüleyebilirsiniz'}
                 </p>
               </div>
               
@@ -124,7 +176,7 @@ export default function CatalogPage() {
       <section className="py-12 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
-            {Object.entries(catalogData).map(([category, items]) => (
+            {Object.entries(catalogToUse).map(([category, items]) => (
               <div key={category} className="mb-12">
                 <h2 className="text-3xl font-bold text-text mb-8">{category}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -144,7 +196,7 @@ export default function CatalogPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            Görüntüle
+                            {isEnglish ? 'View' : 'Görüntüle'}
                           </button>
                           <a
                             href={`/catalogs/${item.file}`}
@@ -178,7 +230,7 @@ export default function CatalogPage() {
           >
             <button 
               className="absolute top-11 right-4 z-10 bg-orange-500 p-2 rounded-lg hover:bg-gray-50 transition-colors"
-              onClick={() => setSelectedPdf(null)}
+              onClick={() => setIsLightboxOpen(false)}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -7,36 +7,52 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/data/products';
 
+// Varsayılan ürün görseli
+const DEFAULT_PRODUCT_IMAGE = '/images/placeholder-product.jpg';
+
 // Kategori tipleri
 interface CategoryBase {
   id: string;
   name: string;
+  nameEn: string;
   subcategories?: CategoryBase[];
 }
 
 // Ürün kategorileri
 const productCategories: CategoryBase[] = [
-  { id: 'cnc-double', name: 'CNC Double Kolon Dik İşleme Merkezi' },
+  { 
+    id: 'cnc-double', 
+    name: 'CNC Double Kolon Dik İşleme Merkezi',
+    nameEn: 'CNC Double Column Vertical Machining Center',
+    subcategories: []
+  },
   { 
     id: 'dalma-erozyon', 
     name: 'Dalma Erozyon Tezgahları',
+    nameEn: 'EDM Machines',
     subcategories: [
       { 
         id: 'best-edm', 
         name: 'BEST EDM',
+        nameEn: 'BEST EDM',
         subcategories: [
-          { id: 'znc-serisi', name: 'ZNC Serisi' },
-          { id: 'pnc-serisi', name: 'PNC Serisi' },
-          { id: 'cnc-serisi', name: 'CNC Serisi' }
+          { id: 'znc-serisi', name: 'ZNC Serisi', nameEn: 'ZNC Series' },
+          { id: 'pnc-serisi', name: 'PNC Serisi', nameEn: 'PNC Series' },
+          { id: 'cnc-serisi', name: 'CNC Serisi', nameEn: 'CNC Series' }
         ]
       },
-      { id: 'cift-kafali-dalma-erezyon', name: 'ÇİFT KAFALI DALMA EREZYON' },
+      { 
+        id: 'cift-kafali-dalma-erezyon', 
+        name: 'ÇİFT KAFALI DALMA EREZYON',
+        nameEn: 'DOUBLE HEAD EDM'
+      },
       { 
         id: 'king-edm', 
         name: 'KING EDM',
+        nameEn: 'KING EDM',
         subcategories: [
-          { id: 'pnc-serisi-king', name: 'PNC SERİSİ' },
-          { id: 'znc-serisi-king', name: 'ZNC SERİSİ' }
+          { id: 'pnc-serisi-king', name: 'PNC SERİSİ', nameEn: 'PNC SERIES' },
+          { id: 'znc-serisi-king', name: 'ZNC SERİSİ', nameEn: 'ZNC SERIES' }
         ]
       }
     ]
@@ -44,71 +60,87 @@ const productCategories: CategoryBase[] = [
   { 
     id: 'kalipci-freze', 
     name: 'Kalıpçı Freze Tezgahları',
+    nameEn: 'Mold Milling Machines',
     subcategories: [
-      { id: 'king', name: 'KİNG' },
-      { id: 'jetco', name: 'JETCO' },
-      { id: 'kg-super', name: 'KG SUPER' }
+      { id: 'king', name: 'KİNG', nameEn: 'KING' },
+      { id: 'jetco', name: 'JETCO', nameEn: 'JETCO' },
+      { id: 'kg-super', name: 'KG SUPER', nameEn: 'KG SUPER' }
     ]
   },
   { 
     id: 'universal-kalipci-freze', 
     name: 'Üniversal Kalıpçı Freze Tezgahları',
+    nameEn: 'Universal Mold Milling Machines',
     subcategories: [
-      { id: 'king-universal', name: 'KİNG' },
-      { id: 'king-ysm', name: 'KİNG YSM' },
-      { id: 'kg-super-universal', name: 'KG SUPER' }
+      { id: 'king-universal', name: 'KİNG', nameEn: 'KING' },
+      { id: 'king-ysm', name: 'KİNG YSM', nameEn: 'KING YSM' },
+      { id: 'kg-super-universal', name: 'KG SUPER', nameEn: 'KG SUPER' }
     ]
   },
-  { id: 'koc-kafa-universal-freze', name: 'Koç Kafa Universal Freze' },
+  { 
+    id: 'koc-kafa-universal-freze', 
+    name: 'Koç Kafa Universal Freze',
+    nameEn: 'Ram Head Universal Milling Machine'
+  },
   { 
     id: 'taslama', 
     name: 'Taşlama Tezgahları',
+    nameEn: 'Grinding Machines',
     subcategories: [
-      { id: 'king-grinder', name: 'KİNG GRINDER' }
+      { id: 'king-grinder', name: 'KİNG GRINDER', nameEn: 'KING GRINDER' }
     ]
   },
   { 
     id: 'universal-torna', 
     name: 'Torna Tezgahları',
+    nameEn: 'Lathe Machines',
     subcategories: [
-      { id: 'king-torna', name: 'KING' },
-      { id: 'jetco-torna', name: 'JETCO' },
-      { id: 'tos', name: 'TOS' }
+      { id: 'king-torna', name: 'KING', nameEn: 'KING' },
+      { id: 'jetco-torna', name: 'JETCO', nameEn: 'JETCO' },
+      { id: 'tos', name: 'TOS', nameEn: 'TOS' }
     ]
   },
-  { id: 'masa-ustu-torna', name: 'Masaüstü Torna Tezgahları' },
+  { 
+    id: 'masa-ustu-torna', 
+    name: 'Masaüstü Torna Tezgahları',
+    nameEn: 'Desktop Lathe Machines'
+  },
   { 
     id: 'radyal-matkap', 
     name: 'Radyal Matkap Tezgahları',
+    nameEn: 'Radial Drilling Machines',
     subcategories: [
-      { id: 'tailift', name: 'TAILIFT' },
-      { id: 'kg-super-matkap', name: 'KG SUPER' }
+      { id: 'tailift', name: 'TAILIFT', nameEn: 'TAILIFT' },
+      { id: 'kg-super-matkap', name: 'KG SUPER', nameEn: 'KG SUPER' }
     ]
   },
   { 
     id: 'sutunlu-matkap', 
     name: 'Sütunlu Matkap Tezgahları',
+    nameEn: 'Column Drilling Machines',
     subcategories: [
-      { id: 'king-matkap', name: 'KING' },
-      { id: 'jetco-matkap', name: 'JETCO' },
-      { id: 'sahin', name: 'ŞAHİN' },
-      { id: 'boyka', name: 'BOYKA' }
+      { id: 'king-matkap', name: 'KING', nameEn: 'KING' },
+      { id: 'jetco-matkap', name: 'JETCO', nameEn: 'JETCO' },
+      { id: 'sahin', name: 'ŞAHİN', nameEn: 'SAHIN' },
+      { id: 'boyka', name: 'BOYKA', nameEn: 'BOYKA' }
     ]
   },
   { 
     id: 'testere', 
     name: 'Testere Tezgahları',
+    nameEn: 'Sawing Machines',
     subcategories: [
-      { id: 'king-tyc', name: 'KING TYC' },
-      { id: 'jetco-testere', name: 'JETCO' },
-      { id: 'kesmak', name: 'KESMAK' }
+      { id: 'king-tyc', name: 'KING TYC', nameEn: 'KING TYC' },
+      { id: 'jetco-testere', name: 'JETCO', nameEn: 'JETCO' },
+      { id: 'kesmak', name: 'KESMAK', nameEn: 'KESMAK' }
     ]
   },
   { 
     id: 'kilavuz', 
     name: 'Kılavuz Çekme Tezgahları',
+    nameEn: 'Tapping Machines',
     subcategories: [
-      { id: 'king-tapping', name: 'KING TAPPING' }
+      { id: 'king-tapping', name: 'KING TAPPING', nameEn: 'KING TAPPING' }
     ]
   }
 ];
@@ -181,7 +213,8 @@ export default function ProductsPage() {
   const productListRef = useRef<HTMLDivElement>(null);
   // Istemci tarafında olup olmadığımızı kontrol etmek için
   const [isClient, setIsClient] = useState(false);
-  // const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null);
+  // Dil seçeneği
+  const [lang, setLang] = useState<'tr' | 'en'>('tr');
 
   // İstemci tarafında olduğumuzu belirle
   useEffect(() => {
@@ -192,10 +225,23 @@ export default function ProductsPage() {
   useEffect(() => {
     if (isClient) {
       const params = new URLSearchParams(window.location.search);
-      // setSearchParams(params);
       const filterParam = params.get('filter') as FilterType;
       if (filterParam) {
         setActiveFilter(filterParam);
+      }
+      
+      // Category parametresini de okuyalım
+      const categoryParam = params.get('category');
+      if (categoryParam) {
+        setActiveCategory(categoryParam);
+      }
+      
+      // Dil parametresini okuyalım
+      const langParam = params.get('lang');
+      if (langParam === 'en') {
+        setLang('en');
+      } else {
+        setLang('tr');
       }
     }
   }, [isClient]);
@@ -275,8 +321,8 @@ export default function ProductsPage() {
             }
           }
           
-          // Ana kategori ise tüm alt kategorilerdeki ürünleri ekle
-          if (isMainCategory && mainCategory?.subcategories) {
+          // Ana kategori ise ve alt kategorileri varsa tüm alt kategorilerdeki ürünleri ekle
+          if (isMainCategory && mainCategory?.subcategories && mainCategory.subcategories.length > 0) {
             const addProductsFromSubcategories = (subcategories: CategoryBase[]) => {
               for (const subcat of subcategories) {
                 // Alt kategorideki ürünleri ekle
@@ -294,9 +340,6 @@ export default function ProductsPage() {
           } 
           // Alt kategori ise sadece bu kategorideki ve alt kategorilerindeki ürünleri göster
           else if (mainCategory) {
-            // Alt kategorinin kendi ürünleri
-            matchingProducts = filtered.filter(product => product.category === categoryId);
-            
             // Alt kategorinin alt kategorileri varsa onları da ekle
             if (mainCategory.subcategories) {
               const addProductsFromSubcategories = (subcategories: CategoryBase[]) => {
@@ -390,10 +433,12 @@ export default function ProductsPage() {
             <div className="container mx-auto px-4 relative">
               <div className="py-16 lg:py-24">
                 <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4">
-                  Ürünlerimiz
+                  {lang === 'en' ? 'Our Products' : 'Ürünlerimiz'}
                 </h1>
                 <p className="text-lg text-white/90 max-w-2xl">
-                  Endüstriyel üretim ihtiyaçlarınız için geniş ürün yelpazemizi keşfedin.
+                  {lang === 'en' 
+                    ? 'Discover our wide range of products for your industrial production needs.' 
+                    : 'Endüstriyel üretim ihtiyaçlarınız için geniş ürün yelpazemizi keşfedin.'}
                 </p>
               </div>
             </div>
@@ -423,7 +468,7 @@ export default function ProductsPage() {
 
   if (!allProducts.length) {
     return (
-      <Suspense fallback={<div>Yükleniyor...</div>}>
+      <Suspense fallback={<div>{lang === 'en' ? 'Loading...' : 'Yükleniyor...'}</div>}>
         <div className="min-h-screen bg-background">
           <Header />
           <main className="pt-[104px]">
@@ -433,10 +478,12 @@ export default function ProductsPage() {
               <div className="container mx-auto px-4 relative">
                 <div className="py-16 lg:py-24">
                   <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4">
-                    Ürünlerimiz
+                    {lang === 'en' ? 'Our Products' : 'Ürünlerimiz'}
                   </h1>
                   <p className="text-lg text-white/90 max-w-2xl">
-                    Endüstriyel üretim ihtiyaçlarınız için geniş ürün yelpazemizi keşfedin.
+                    {lang === 'en' 
+                      ? 'Discover our wide range of products for your industrial production needs.' 
+                      : 'Endüstriyel üretim ihtiyaçlarınız için geniş ürün yelpazemizi keşfedin.'}
                   </p>
                 </div>
               </div>
@@ -457,9 +504,9 @@ export default function ProductsPage() {
                       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                         <button
                           onClick={() => {
-                            setActiveFilter('urunler');
-                            setActiveCategory('');
-                            setCurrentPage(1);
+                            window.location.href = lang === 'en' 
+                              ? '/urunler?filter=urunler&lang=en' 
+                              : '/urunler?filter=urunler';
                           }}
                           className={`relative px-4 py-3 rounded-xl font-medium transition-all ${
                             activeFilter === 'urunler'
@@ -467,16 +514,16 @@ export default function ProductsPage() {
                               : 'bg-gray-50 text-gray-600 hover:bg-primary/10 hover:text-primary'
                           }`}
                         >
-                          <span className="relative z-10">Ürünler</span>
+                          <span className="relative z-10">{lang === 'en' ? 'Products' : 'Ürünler'}</span>
                           <span className="absolute top-2 right-2 text-xs bg-white/20 px-2 py-1 rounded-full">
                             {allProducts.filter(p => p.type === 'products').length}
                           </span>
                         </button>
                         <button
                           onClick={() => {
-                            setActiveFilter('ikinci-el');
-                            setActiveCategory('');
-                            setCurrentPage(1);
+                            window.location.href = lang === 'en' 
+                              ? '/urunler?filter=ikinci-el&lang=en' 
+                              : '/urunler?filter=ikinci-el';
                           }}
                           className={`relative px-4 py-3 rounded-xl font-medium transition-all border ${
                             activeFilter === 'ikinci-el'
@@ -484,16 +531,16 @@ export default function ProductsPage() {
                               : 'bg-white text-gray-600 hover:bg-amber-500/10 hover:text-amber-600 border-amber-500/20 shadow-sm hover:shadow'
                           }`}
                         >
-                          <span className="relative z-10">İkinci El</span>
+                          <span className="relative z-10">{lang === 'en' ? 'Used' : 'İkinci El'}</span>
                           <span className="absolute top-2 right-2 text-xs bg-white/20 px-2 py-1 rounded-full">
                             {allProducts.filter(p => p.type === 'used').length}
                           </span>
                         </button>
                         <button
                           onClick={() => {
-                            setActiveFilter('yedek-parca');
-                            setActiveCategory('');
-                            setCurrentPage(1);
+                            window.location.href = lang === 'en' 
+                              ? '/urunler?filter=yedek-parca&lang=en' 
+                              : '/urunler?filter=yedek-parca';
                           }}
                           className={`relative px-4 py-3 rounded-xl font-medium transition-all border ${
                             activeFilter === 'yedek-parca'
@@ -501,16 +548,16 @@ export default function ProductsPage() {
                               : 'bg-white text-gray-600 hover:bg-blue-500/10 hover:text-blue-600 border-blue-500/20 shadow-sm hover:shadow'
                           }`}
                         >
-                          <span className="relative z-10">Yedek Parçalar</span>
+                          <span className="relative z-10">{lang === 'en' ? 'Spare Parts' : 'Yedek Parçalar'}</span>
                           <span className="absolute top-2 right-2 text-xs bg-white/20 px-2 py-1 rounded-full">
                             {allProducts.filter(p => p.type === 'spare').length}
                           </span>
                         </button>
                         <button
                           onClick={() => {
-                            setActiveFilter('aksesuar');
-                            setActiveCategory('');
-                            setCurrentPage(1);
+                            window.location.href = lang === 'en' 
+                              ? '/urunler?filter=aksesuar&lang=en' 
+                              : '/urunler?filter=aksesuar';
                           }}
                           className={`relative px-4 py-3 rounded-xl font-medium transition-all border ${
                             activeFilter === 'aksesuar'
@@ -518,16 +565,16 @@ export default function ProductsPage() {
                               : 'bg-white text-gray-600 hover:bg-green-500/10 hover:text-green-600 border-green-500/20 shadow-sm hover:shadow'
                           }`}
                         >
-                          <span className="relative z-10">Aksesuarlar</span>
+                          <span className="relative z-10">{lang === 'en' ? 'Accessories' : 'Aksesuarlar'}</span>
                           <span className="absolute top-2 right-2 text-xs bg-white/20 px-2 py-1 rounded-full">
                             {allProducts.filter(p => p.type === 'accessories').length}
                           </span>
                         </button>
                         <button
                           onClick={() => {
-                            setActiveFilter('kampanya');
-                            setActiveCategory('');
-                            setCurrentPage(1);
+                            window.location.href = lang === 'en' 
+                              ? '/urunler?filter=kampanya&lang=en' 
+                              : '/urunler?filter=kampanya';
                           }}
                           className={`relative px-4 py-3 rounded-xl font-medium transition-all border ${
                             activeFilter === 'kampanya'
@@ -535,7 +582,7 @@ export default function ProductsPage() {
                               : 'bg-white text-gray-600 hover:bg-rose-500/10 hover:text-rose-600 border-rose-500/20 shadow-sm hover:shadow'
                           }`}
                         >
-                          <span className="relative z-10">Kampanyalar</span>
+                          <span className="relative z-10">{lang === 'en' ? 'Campaigns' : 'Kampanyalar'}</span>
                           <span className="absolute top-2 right-2 text-xs bg-white/20 px-2 py-1 rounded-full">
                             {allProducts.filter(p => p.type === 'campaign' || p.campaign).length}
                           </span>
@@ -549,12 +596,12 @@ export default function ProductsPage() {
                         <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        Ürün Ara
+                        {lang === 'en' ? 'Product Search' : 'Ürün Ara'}
                       </h2>
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="Ürün ara..."
+                          placeholder={lang === 'en' ? 'Search for a product...' : 'Ürün ara...'}
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all pr-10"
@@ -577,7 +624,7 @@ export default function ProductsPage() {
                   {(activeFilter || activeCategory) && (
                     <div className="mt-6 pt-6 border-t border-gray-100">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-gray-500">Aktif Filtreler:</span>
+                        <span className="text-sm text-gray-500">{lang === 'en' ? 'Active Filters:' : 'Aktif Filtreler:'}</span>
                         
                         {/* Ürün tipi filtresi */}
                         {activeFilter && (
@@ -588,13 +635,20 @@ export default function ProductsPage() {
                             activeFilter === 'aksesuar' ? 'bg-green-500/10 text-green-600' :
                             'bg-rose-500/10 text-rose-600'
                           }`}>
-                            {activeFilter === 'urunler' ? 'Ürünler' :
-                             activeFilter === 'ikinci-el' ? 'İkinci El' :
-                             activeFilter === 'yedek-parca' ? 'Yedek Parçalar' :
-                             activeFilter === 'aksesuar' ? 'Aksesuarlar' :
-                             'Kampanyalı Ürünler'}
+                            {activeFilter === 'urunler' ? (lang === 'en' ? 'Products' : 'Ürünler') :
+                             activeFilter === 'ikinci-el' ? (lang === 'en' ? 'Used' : 'İkinci El') :
+                             activeFilter === 'yedek-parca' ? (lang === 'en' ? 'Spare Parts' : 'Yedek Parçalar') :
+                             activeFilter === 'aksesuar' ? (lang === 'en' ? 'Accessories' : 'Aksesuarlar') :
+                             (lang === 'en' ? 'Campaign Products' : 'Kampanyalı Ürünler')}
                             <button
-                              onClick={() => setActiveFilter('')}
+                              onClick={() => {
+                                setActiveFilter('');
+                                setActiveCategory('');
+                                // URL'i temizle
+                                const url = new URL(window.location.href);
+                                url.search = lang === 'en' ? '?lang=en' : '';
+                                window.history.pushState({}, '', url.toString());
+                              }}
                               className="ml-1 hover:text-primary-600"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -615,10 +669,16 @@ export default function ProductsPage() {
                               'bg-rose-500/10 text-rose-600'
                             } text-sm`}
                           >
-                            {cat.name}
+                            {lang === 'en' ? cat.nameEn : cat.name}
                             {index === findCategoryPath(productCategories, activeCategory).length - 1 && (
                               <button
-                                onClick={() => setActiveCategory('')}
+                                onClick={() => {
+                                  setActiveCategory('');
+                                  // URL'den kategori parametresini kaldır
+                                  const url = new URL(window.location.href);
+                                  url.searchParams.delete('category');
+                                  window.history.pushState({}, '', url.toString());
+                                }}
                                 className="ml-1 hover:text-primary-600"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -633,10 +693,14 @@ export default function ProductsPage() {
                           onClick={() => {
                             setActiveFilter('');
                             setActiveCategory('');
+                            // URL'i temizle
+                            const url = new URL(window.location.href);
+                            url.search = lang === 'en' ? '?lang=en' : '';
+                            window.history.pushState({}, '', url.toString());
                           }}
                           className="text-sm text-gray-500 hover:text-primary"
                         >
-                          Filtreleri Temizle
+                          {lang === 'en' ? 'Clear Filters' : 'Filtreleri Temizle'}
                         </button>
                       </div>
                     </div>
@@ -645,10 +709,16 @@ export default function ProductsPage() {
                   {/* Sonuç Sayısı */}
                   <div className="mt-6 flex items-center justify-between">
                     <div className="text-sm text-gray-500">
-                      Toplam <span className="font-medium text-gray-900">{filteredProducts.length}</span> ürün bulundu
+                      {lang === 'en' 
+                        ? <>Total <span className="font-medium text-gray-900">{filteredProducts.length}</span> products found</>
+                        : <>Toplam <span className="font-medium text-gray-900">{filteredProducts.length}</span> ürün bulundu</>
+                      }
                       {filteredProducts.length > 0 && (
                         <span className="ml-2">
-                          (Gösterilen: {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, filteredProducts.length)})
+                          {lang === 'en' 
+                            ? <>(Displayed: {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, filteredProducts.length)})</>
+                            : <>(Gösterilen: {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, filteredProducts.length)})</>
+                          }
                         </span>
                       )}
                     </div>
@@ -676,10 +746,12 @@ export default function ProductsPage() {
             <div className="container mx-auto px-4 relative">
               <div className="py-16 lg:py-24">
                 <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4">
-                  Ürünlerimiz
+                  {lang === 'en' ? 'Our Products' : 'Ürünlerimiz'}
                 </h1>
                 <p className="text-lg text-white/90 max-w-2xl">
-                  Endüstriyel üretim ihtiyaçlarınız için geniş ürün yelpazemizi keşfedin.
+                  {lang === 'en' 
+                    ? 'Discover our wide range of products for your industrial production needs.' 
+                    : 'Endüstriyel üretim ihtiyaçlarınız için geniş ürün yelpazemizi keşfedin.'}
                 </p>
               </div>
             </div>
@@ -717,14 +789,14 @@ export default function ProductsPage() {
                       <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                       </svg>
-                      Ürün Filtreleri
+                      {lang === 'en' ? 'Product Filters' : 'Ürün Filtreleri'}
                     </h2>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                       <button
                         onClick={() => {
-                          setActiveFilter('urunler');
-                          setActiveCategory('');
-                          setCurrentPage(1);
+                          window.location.href = lang === 'en' 
+                            ? '/urunler?filter=urunler&lang=en' 
+                            : '/urunler?filter=urunler';
                         }}
                         className={`relative px-4 py-3 rounded-xl font-medium transition-all ${
                           activeFilter === 'urunler'
@@ -732,16 +804,16 @@ export default function ProductsPage() {
                             : 'bg-gray-50 text-gray-600 hover:bg-primary/10 hover:text-primary'
                         }`}
                       >
-                        <span className="relative z-10">Ürünler</span>
+                        <span className="relative z-10">{lang === 'en' ? 'Products' : 'Ürünler'}</span>
                         <span className="absolute top-2 right-2 text-xs bg-white/20 px-2 py-1 rounded-full">
                           {allProducts.filter(p => p.type === 'products').length}
                         </span>
                       </button>
                       <button
                         onClick={() => {
-                          setActiveFilter('ikinci-el');
-                          setActiveCategory('');
-                          setCurrentPage(1);
+                          window.location.href = lang === 'en' 
+                            ? '/urunler?filter=ikinci-el&lang=en' 
+                            : '/urunler?filter=ikinci-el';
                         }}
                         className={`relative px-4 py-3 rounded-xl font-medium transition-all border ${
                           activeFilter === 'ikinci-el'
@@ -749,16 +821,16 @@ export default function ProductsPage() {
                             : 'bg-white text-gray-600 hover:bg-amber-500/10 hover:text-amber-600 border-amber-500/20 shadow-sm hover:shadow'
                         }`}
                       >
-                        <span className="relative z-10">İkinci El</span>
+                        <span className="relative z-10">{lang === 'en' ? 'Used' : 'İkinci El'}</span>
                         <span className="absolute top-2 right-2 text-xs bg-white/20 px-2 py-1 rounded-full">
                           {allProducts.filter(p => p.type === 'used').length}
                         </span>
                       </button>
                       <button
                         onClick={() => {
-                          setActiveFilter('yedek-parca');
-                          setActiveCategory('');
-                          setCurrentPage(1);
+                          window.location.href = lang === 'en' 
+                            ? '/urunler?filter=yedek-parca&lang=en' 
+                            : '/urunler?filter=yedek-parca';
                         }}
                         className={`relative px-4 py-3 rounded-xl font-medium transition-all border ${
                           activeFilter === 'yedek-parca'
@@ -766,16 +838,16 @@ export default function ProductsPage() {
                             : 'bg-white text-gray-600 hover:bg-blue-500/10 hover:text-blue-600 border-blue-500/20 shadow-sm hover:shadow'
                         }`}
                       >
-                        <span className="relative z-10">Yedek Parçalar</span>
+                        <span className="relative z-10">{lang === 'en' ? 'Spare Parts' : 'Yedek Parçalar'}</span>
                         <span className="absolute top-2 right-2 text-xs bg-white/20 px-2 py-1 rounded-full">
                           {allProducts.filter(p => p.type === 'spare').length}
                         </span>
                       </button>
                       <button
                         onClick={() => {
-                          setActiveFilter('aksesuar');
-                          setActiveCategory('');
-                          setCurrentPage(1);
+                          window.location.href = lang === 'en' 
+                            ? '/urunler?filter=aksesuar&lang=en' 
+                            : '/urunler?filter=aksesuar';
                         }}
                         className={`relative px-4 py-3 rounded-xl font-medium transition-all border ${
                           activeFilter === 'aksesuar'
@@ -783,16 +855,16 @@ export default function ProductsPage() {
                             : 'bg-white text-gray-600 hover:bg-green-500/10 hover:text-green-600 border-green-500/20 shadow-sm hover:shadow'
                         }`}
                       >
-                        <span className="relative z-10">Aksesuarlar</span>
+                        <span className="relative z-10">{lang === 'en' ? 'Accessories' : 'Aksesuarlar'}</span>
                         <span className="absolute top-2 right-2 text-xs bg-white/20 px-2 py-1 rounded-full">
                           {allProducts.filter(p => p.type === 'accessories').length}
                         </span>
                       </button>
                       <button
                         onClick={() => {
-                          setActiveFilter('kampanya');
-                          setActiveCategory('');
-                          setCurrentPage(1);
+                          window.location.href = lang === 'en' 
+                            ? '/urunler?filter=kampanya&lang=en' 
+                            : '/urunler?filter=kampanya';
                         }}
                         className={`relative px-4 py-3 rounded-xl font-medium transition-all border ${
                           activeFilter === 'kampanya'
@@ -800,7 +872,7 @@ export default function ProductsPage() {
                             : 'bg-white text-gray-600 hover:bg-rose-500/10 hover:text-rose-600 border-rose-500/20 shadow-sm hover:shadow'
                         }`}
                       >
-                        <span className="relative z-10">Kampanyalar</span>
+                        <span className="relative z-10">{lang === 'en' ? 'Campaigns' : 'Kampanyalar'}</span>
                         <span className="absolute top-2 right-2 text-xs bg-white/20 px-2 py-1 rounded-full">
                           {allProducts.filter(p => p.type === 'campaign' || p.campaign).length}
                         </span>
@@ -814,12 +886,12 @@ export default function ProductsPage() {
                       <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
-                      Ürün Ara
+                      {lang === 'en' ? 'Product Search' : 'Ürün Ara'}
                     </h2>
                     <div className="relative">
                       <input
                         type="text"
-                        placeholder="Ürün ara..."
+                        placeholder={lang === 'en' ? 'Search for a product...' : 'Ürün ara...'}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all pr-10"
@@ -842,7 +914,7 @@ export default function ProductsPage() {
                 {(activeFilter || activeCategory) && (
                   <div className="mt-6 pt-6 border-t border-gray-100">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm text-gray-500">Aktif Filtreler:</span>
+                      <span className="text-sm text-gray-500">{lang === 'en' ? 'Active Filters:' : 'Aktif Filtreler:'}</span>
                       
                       {/* Ürün tipi filtresi */}
                       {activeFilter && (
@@ -853,13 +925,17 @@ export default function ProductsPage() {
                           activeFilter === 'aksesuar' ? 'bg-green-500/10 text-green-600' :
                           'bg-rose-500/10 text-rose-600'
                         }`}>
-                          {activeFilter === 'urunler' ? 'Ürünler' :
-                           activeFilter === 'ikinci-el' ? 'İkinci El' :
-                           activeFilter === 'yedek-parca' ? 'Yedek Parçalar' :
-                           activeFilter === 'aksesuar' ? 'Aksesuarlar' :
-                           'Kampanyalı Ürünler'}
+                          {activeFilter === 'urunler' ? (lang === 'en' ? 'Products' : 'Ürünler') :
+                           activeFilter === 'ikinci-el' ? (lang === 'en' ? 'Used' : 'İkinci El') :
+                           activeFilter === 'yedek-parca' ? (lang === 'en' ? 'Spare Parts' : 'Yedek Parçalar') :
+                           activeFilter === 'aksesuar' ? (lang === 'en' ? 'Accessories' : 'Aksesuarlar') :
+                           (lang === 'en' ? 'Campaign Products' : 'Kampanyalı Ürünler')}
                           <button
-                            onClick={() => setActiveFilter('')}
+                            onClick={() => {
+                              window.location.href = lang === 'en'
+                                ? `/urunler${activeFilter ? `?filter=${activeFilter}&lang=en` : '?lang=en'}`
+                                : `/urunler${activeFilter ? `?filter=${activeFilter}` : ''}`;
+                            }}
                             className="ml-1 hover:text-primary-600"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -880,10 +956,16 @@ export default function ProductsPage() {
                             'bg-rose-500/10 text-rose-600'
                           } text-sm`}
                         >
-                          {cat.name}
+                          {lang === 'en' ? cat.nameEn : cat.name}
                           {index === findCategoryPath(productCategories, activeCategory).length - 1 && (
                             <button
-                              onClick={() => setActiveCategory('')}
+                              onClick={() => {
+                                setActiveCategory('');
+                                // URL'den kategori parametresini kaldır
+                                const url = new URL(window.location.href);
+                                url.searchParams.delete('category');
+                                window.history.pushState({}, '', url.toString());
+                              }}
                               className="ml-1 hover:text-primary-600"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -896,12 +978,11 @@ export default function ProductsPage() {
                       
                       <button
                         onClick={() => {
-                          setActiveFilter('');
-                          setActiveCategory('');
+                          window.location.href = lang === 'en' ? '/urunler?lang=en' : '/urunler';
                         }}
                         className="text-sm text-gray-500 hover:text-primary"
                       >
-                        Filtreleri Temizle
+                        {lang === 'en' ? 'Clear Filters' : 'Filtreleri Temizle'}
                       </button>
                     </div>
                   </div>
@@ -910,7 +991,18 @@ export default function ProductsPage() {
                 {/* Sonuç Sayısı */}
                 <div className="mt-6 flex items-center justify-between">
                   <div className="text-sm text-gray-500">
-                    Toplam <span className="font-medium text-gray-900">{filteredProducts.length}</span> ürün bulundu
+                    {lang === 'en' 
+                      ? <>Total <span className="font-medium text-gray-900">{filteredProducts.length}</span> products found</>
+                      : <>Toplam <span className="font-medium text-gray-900">{filteredProducts.length}</span> ürün bulundu</>
+                    }
+                    {filteredProducts.length > 0 && (
+                      <span className="ml-2">
+                        {lang === 'en' 
+                          ? <>(Displayed: {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, filteredProducts.length)})</>
+                          : <>(Gösterilen: {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, filteredProducts.length)})</>
+                        }
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -927,9 +1019,11 @@ export default function ProductsPage() {
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
                           </svg>
-                          Kategoriler
+                          {lang === 'en' ? 'Categories' : 'Kategoriler'}
                         </h2>
-                        <p className="text-xs text-white/70 mt-1">Ürün kategorilerine göz atın</p>
+                        <p className="text-xs text-white/70 mt-1">
+                          {lang === 'en' ? 'Browse product categories' : 'Ürün kategorilerine göz atın'}
+                        </p>
                       </div>
                       
                       {/* Kategori Listesi */}
@@ -940,7 +1034,10 @@ export default function ProductsPage() {
                               <button
                                 onClick={() => {
                                   setActiveCategory(category.id);
-                                  setCurrentPage(1);
+                                  // URL parametrelerini güncelle ama sayfayı yenileme
+                                  const url = new URL(window.location.href);
+                                  url.searchParams.set('category', category.id);
+                                  window.history.pushState({}, '', url.toString());
                                 }}
                                 className={`w-full text-left px-4 py-3 transition-all flex items-center justify-between ${
                                   activeCategory === category.id || isCategoryOpen(category, activeCategory)
@@ -948,7 +1045,7 @@ export default function ProductsPage() {
                                     : 'hover:bg-gray-100 text-gray-700'
                                 }`}
                               >
-                                <span>{category.name}</span>
+                                <span>{lang === 'en' ? category.nameEn : category.name}</span>
                                 {category.subcategories && (
                                   <svg 
                                     className={`w-4 h-4 transition-transform ${isCategoryOpen(category, activeCategory) ? 'rotate-180' : ''}`} 
@@ -969,7 +1066,10 @@ export default function ProductsPage() {
                                       <button
                                         onClick={() => {
                                           setActiveCategory(subcat.id);
-                                          setCurrentPage(1);
+                                          // URL parametrelerini güncelle ama sayfayı yenileme
+                                          const url = new URL(window.location.href);
+                                          url.searchParams.set('category', subcat.id);
+                                          window.history.pushState({}, '', url.toString());
                                         }}
                                         className={`w-full text-left px-4 py-2.5 transition-all flex items-center justify-between ${
                                           activeCategory === subcat.id || (subcat.subcategories && subcat.subcategories.some(subsub => subsub.id === activeCategory))
@@ -981,7 +1081,7 @@ export default function ProductsPage() {
                                           <svg className="w-3 h-3 mr-2 text-primary/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                           </svg>
-                                          {subcat.name}
+                                          {lang === 'en' ? subcat.nameEn : subcat.name}
                                         </span>
                                         {subcat.subcategories && (
                                           <svg 
@@ -1003,7 +1103,10 @@ export default function ProductsPage() {
                                               key={subsubcat.id}
                                               onClick={() => {
                                                 setActiveCategory(subsubcat.id);
-                                                setCurrentPage(1);
+                                                // URL parametrelerini güncelle ama sayfayı yenileme
+                                                const url = new URL(window.location.href);
+                                                url.searchParams.set('category', subsubcat.id);
+                                                window.history.pushState({}, '', url.toString());
                                               }}
                                               className={`w-full text-left px-8 py-2 text-sm transition-all ${
                                                 activeCategory === subsubcat.id
@@ -1013,7 +1116,7 @@ export default function ProductsPage() {
                                             >
                                               <span className="flex items-center">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-primary/40 mr-2"></span>
-                                                {subsubcat.name}
+                                                {lang === 'en' ? subsubcat.nameEn : subsubcat.name}
                                               </span>
                                             </button>
                                           ))}
@@ -1034,47 +1137,42 @@ export default function ProductsPage() {
                 {/* Sağ Taraf - Ürün Listesi */}
                 <div className={activeFilter === 'urunler' ? 'lg:w-3/4' : 'w-full'}>
                   <div ref={productListRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {currentProducts.map((product) => (
-                      <Link
-                        key={product.id}
-                        href={`/urunler/${product.id}`}
-                        className="group"
-                      >
-                        <div className="bg-white rounded-2xl shadow-lg relative overflow-hidden h-full flex flex-col">
-                          {/* Ürün Görseli */}
-                          <div className="relative aspect-[4/3]">
+                    {currentProducts.map((product) => {
+                      // Dile göre içeriği seç
+                      const content = lang === 'en' && product.translations?.en ? {
+                        name: product.translations.en.name,
+                        description: product.translations.en.description
+                      } : {
+                        name: product.name,
+                        description: product.description
+                      };
+
+                      return (
+                        <Link
+                          key={product.id}
+                          href={`/urunler/${product.id}?lang=${lang}`}
+                          className="group relative bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                        >
+                          <div className="aspect-square relative">
                             <Image
-                              src={product.image || '/images/placeholder-product.jpg'}
-                              alt={product.name}
+                              src={product.images?.[0] || product.image || DEFAULT_PRODUCT_IMAGE}
+                              alt={content.name}
                               fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                              className="object-cover"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             />
                           </div>
-
-                          {/* Ürün Detayları */}
-                          <div className="p-4 flex flex-col gap-2">
-                            <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-primary transition-colors">
-                              {product.name}
+                          <div className="p-4">
+                            <h3 className="text-lg font-semibold text-text mb-2 line-clamp-2">
+                              {content.name}
                             </h3>
-                            <p className="text-sm text-gray-600 line-clamp-2">
-                              {product.description}
+                            <p className="text-text-light line-clamp-3">
+                              {content.description}
                             </p>
-                            {product.price && (
-                              <div className="mt-2">
-                                <div className="text-xl font-bold text-primary">
-                                  {product.price.toLocaleString('tr-TR')} ₺
-                                </div>
-                                {product.oldPrice && (
-                                  <div className="text-sm text-gray-500 line-through">
-                                    {product.oldPrice.toLocaleString('tr-TR')} ₺
-                                  </div>
-                                )}
-                              </div>
-                            )}
                           </div>
-                        </div>
-                      </Link>
-                    ))}
+                        </Link>
+                      );
+                    })}
                   </div>
                   
                   {/* Sayfalama */}

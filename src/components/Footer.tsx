@@ -2,8 +2,30 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useClientTranslation } from '@/lib/i18n';
+import { useState, useEffect } from 'react';
 
 export default function Footer() {
+  const { t, locale } = useClientTranslation();
+  const [isMounted, setIsMounted] = useState(false);
+  const isEnglish = locale === 'en';
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Sadece istemci tarafında çevirileri göster
+  const getTranslation = (key: string, fallback: string = '') => {
+    if (!isMounted) return fallback;
+    try {
+      const translated = t(key);
+      return translated === key ? fallback : translated;
+    } catch (error) {
+      console.error('Çeviri hatası:', error);
+      return fallback;
+    }
+  };
+
   return (
     <footer className="bg-background-dark text-white">
       {/* Üst Kısım */}
@@ -12,9 +34,9 @@ export default function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
             {/* Şirket Bilgileri */}
             <div className="space-y-6">
-              <Link href="/" className="block">
+              <Link href={isEnglish ? "/?lang=en" : "/"} className="block">
                 <Image
-                  src="/images/logo-light.png"
+                  src="/logo.png"
                   alt="Güvenal Makina Logo"
                   width={180}
                   height={48}
@@ -22,8 +44,7 @@ export default function Footer() {
                 />
               </Link>
               <p className="text-gray-400 text-sm leading-relaxed">
-                1983&apos;ten beri endüstriyel makina sektöründe öncü çözümler sunuyoruz. 
-                Kalite ve güvenilirlik ilkelerimizle müşterilerimize en iyi hizmeti sağlıyoruz.
+                {getTranslation('footer.companyDesc', '1983\'ten beri endüstriyel makina sektöründe öncü çözümler sunuyoruz. Kalite ve güvenilirlik ilkelerimizle müşterilerimize en iyi hizmeti sağlıyoruz.')}
               </p>
               <div className="flex items-center gap-4">
                 <a href="#" className="text-gray-400 hover:text-primary transition-colors">
@@ -51,36 +72,46 @@ export default function Footer() {
 
             {/* Hızlı Linkler */}
             <div>
-              <h3 className="text-lg font-semibold mb-6">Hızlı Linkler</h3>
+              <h3 className="text-lg font-semibold mb-6">{getTranslation('footer.quickLinks', 'Hızlı Linkler')}</h3>
               <ul className="space-y-4">
                 <li>
-                  <Link href="/kurumsal" className="text-gray-400 hover:text-primary transition-colors">
-                    Kurumsal
+                  <Link href={isEnglish ? "/kurumsal?lang=en" : "/kurumsal"} className="text-gray-400 hover:text-primary transition-colors">
+                    {getTranslation('footer.corporate', 'Kurumsal')}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/urunler" className="text-gray-400 hover:text-primary transition-colors">
-                    Ürünlerimiz
+                  <Link href={isEnglish ? "/urunler?lang=en" : "/urunler"} className="text-gray-400 hover:text-primary transition-colors">
+                    {getTranslation('footer.ourProducts', 'Ürünlerimiz')}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/ikinci-el" className="text-gray-400 hover:text-primary transition-colors">
-                    İkinci El
+                  <Link href={isEnglish ? "/urunler?filter=ikinci-el&lang=en" : "/urunler?filter=ikinci-el"} className="text-gray-400 hover:text-primary transition-colors">
+                    {getTranslation('footer.secondHand', 'İkinci El')}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/yedek-parca" className="text-gray-400 hover:text-primary transition-colors">
-                    Yedek Parça
+                  <Link href={isEnglish ? "/urunler?filter=yedek-parca&lang=en" : "/urunler?filter=yedek-parca"} className="text-gray-400 hover:text-primary transition-colors">
+                    {getTranslation('footer.spareParts', 'Yedek Parça')}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/kariyer" className="text-gray-400 hover:text-primary transition-colors">
-                    Kariyer
+                  <Link href={isEnglish ? "/kariyer?lang=en" : "/kariyer"} className="text-gray-400 hover:text-primary transition-colors">
+                    {getTranslation('footer.career', 'Kariyer')}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/iletisim" className="text-gray-400 hover:text-primary transition-colors">
-                    İletişim
+                  <Link href={isEnglish ? "/iletisim?lang=en" : "/iletisim"} className="text-gray-400 hover:text-primary transition-colors">
+                    {getTranslation('footer.contact', 'İletişim')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={isEnglish ? "/sertifikalar?lang=en" : "/sertifikalar"} className="text-gray-400 hover:text-primary transition-colors">
+                    Sertifikalar
+                  </Link>
+                </li>
+                <li>
+                  <Link href={isEnglish ? "/cozum-ortaklari?lang=en" : "/cozum-ortaklari"} className="text-gray-400 hover:text-primary transition-colors">
+                    Çözüm Ortakları
                   </Link>
                 </li>
               </ul>
@@ -88,7 +119,7 @@ export default function Footer() {
 
             {/* İletişim Bilgileri */}
             <div>
-              <h3 className="text-lg font-semibold mb-6">İletişim</h3>
+              <h3 className="text-lg font-semibold mb-6">{getTranslation('footer.contactUs', 'İletişim')}</h3>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,37 +127,35 @@ export default function Footer() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   <span className="text-gray-400 text-sm leading-relaxed">
-                    Organize Sanayi Bölgesi, <br />
-                    1. Cadde No: 123 <br />
-                    34555 İstanbul / Türkiye
+                    {getTranslation('footer.address', 'Organize Sanayi Bölgesi, 1. Cadde No: 123 34555 İstanbul / Türkiye')}
                   </span>
                 </li>
                 <li className="flex items-center gap-3">
                   <svg className="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
-                  <span className="text-gray-400">+90 (212) 123 45 67</span>
+                  <span className="text-gray-400">{getTranslation('footer.phone', '+90 (212) 123 45 67')}</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <svg className="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <span className="text-gray-400">info@guvenalmakina.com</span>
+                  <span className="text-gray-400">{getTranslation('footer.email', 'info@guvenalmakina.com')}</span>
                 </li>
               </ul>
             </div>
 
             {/* Çalışma Saatleri */}
             <div>
-              <h3 className="text-lg font-semibold mb-6">Çalışma Saatleri</h3>
+              <h3 className="text-lg font-semibold mb-6">{getTranslation('footer.workingHours', 'Çalışma Saatleri')}</h3>
               <ul className="space-y-4">
                 <li className="flex items-center gap-3">
                   <svg className="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div>
-                    <p className="text-white">Pazartesi - Cuma</p>
-                    <p className="text-gray-400">09:00 - 18:00</p>
+                    <p className="text-white">{getTranslation('footer.mondayToFriday', 'Pazartesi - Cuma')}</p>
+                    <p className="text-gray-400">{getTranslation('footer.time1', '09:00 - 18:00')}</p>
                   </div>
                 </li>
                 <li className="flex items-center gap-3">
@@ -134,8 +163,8 @@ export default function Footer() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div>
-                    <p className="text-white">Cumartesi</p>
-                    <p className="text-gray-400">09:00 - 14:00</p>
+                    <p className="text-white">{getTranslation('footer.saturday', 'Cumartesi')}</p>
+                    <p className="text-gray-400">{getTranslation('footer.time2', '09:00 - 14:00')}</p>
                   </div>
                 </li>
               </ul>
@@ -152,19 +181,19 @@ export default function Footer() {
               <div className="md:col-span-2">
                 <div className="flex flex-col md:flex-row gap-6">
                   <Link href="/kullanim-kosullari" className="text-gray-400 hover:text-primary text-sm transition-colors">
-                    Kullanım Koşulları
+                    {getTranslation('footer.termsOfUse', 'Kullanım Koşulları')}
                   </Link>
                   <Link href="/gizlilik-bildirimi" className="text-gray-400 hover:text-primary text-sm transition-colors">
-                    Gizlilik Bildirimi
+                    {getTranslation('footer.privacyPolicy', 'Gizlilik Bildirimi')}
                   </Link>
                   <Link href="/erisilebilirlik" className="text-gray-400 hover:text-primary text-sm transition-colors">
-                    Erişilebilirlik
+                    {getTranslation('footer.accessibilityStatement', 'Erişilebilirlik')}
                   </Link>
                 </div>
               </div>
               <div className="md:col-span-2 text-right">
                 <p className="text-gray-400 text-sm">
-                  © 2024 Güvenal Makina. Tüm hakları saklıdır.
+                  © 2024 Güvenal Makina. {getTranslation('footer.allRightsReserved', 'Tüm hakları saklıdır.')}
                 </p>
               </div>
             </div>

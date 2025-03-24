@@ -2,12 +2,14 @@
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 // import { products } from '@/data/products';
 import { Product } from '@/data/products';
+import { useClientTranslation } from '@/lib/i18n';
 
 export default function ContactPage() {
+  const { locale, initialized } = useClientTranslation(['common']);
   const [activeTab, setActiveTab] = useState('contact');
   const [activeLocationTab, setActiveLocationTab] = useState('merkez');
   const [formData, setFormData] = useState({
@@ -38,6 +40,62 @@ export default function ContactPage() {
   }
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Captcha canvas'ını çizme fonksiyonu
+  const drawCaptcha = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Canvas'ı temizle
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Arkaplan
+    ctx.fillStyle = '#f3f4f6';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Karıştırıcı çizgiler
+    for (let i = 0; i < 10; i++) {
+      ctx.beginPath();
+      ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+      ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+      ctx.strokeStyle = `rgba(37, 99, 235, ${Math.random() * 0.2 + 0.1})`;
+      ctx.stroke();
+    }
+
+    // Metni çiz
+    ctx.font = 'bold 24px Arial';
+    ctx.fillStyle = '#2563eb';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Her karakteri ayrı ayrı çiz ve hafifçe döndür
+    for (let i = 0; i < captchaCode.length; i++) {
+      const x = (canvas.width / captchaCode.length) * (i + 0.5);
+      const y = canvas.height / 2;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate((Math.random() - 0.5) * 0.4);
+      ctx.fillText(captchaCode[i], 0, 0);
+      ctx.restore();
+    }
+
+    // Noktalar ekle
+    for (let i = 0; i < 50; i++) {
+      ctx.beginPath();
+      ctx.arc(
+        Math.random() * canvas.width,
+        Math.random() * canvas.height,
+        1,
+        0,
+        Math.PI * 2
+      );
+      ctx.fillStyle = `rgba(37, 99, 235, ${Math.random() * 0.2 + 0.1})`;
+      ctx.fill();
+    }
+  }, [captchaCode]);
 
   // Ürün arama için state'ler
   const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(false);
@@ -94,72 +152,40 @@ export default function ContactPage() {
 
   // İlk yükleme ve yenileme durumlarında captcha'yı oluştur
   useEffect(() => {
-    function drawCaptcha() {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+    const timer = setTimeout(() => {
+      drawCaptcha();
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [drawCaptcha]);
 
-      requestAnimationFrame(() => {
-        // Canvas'ı temizle
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // useEffect ile DOM yüklendikten sonra tekrar çiz
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      drawCaptcha();
+    }, 800);
+    
+    const secondTimer = setTimeout(() => {
+      drawCaptcha();
+    }, 1500);
+    
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(secondTimer);
+    };
+  }, [initialized, drawCaptcha]);
 
-        // Arkaplan
-        ctx.fillStyle = '#f3f4f6';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Karıştırıcı çizgiler
-        for (let i = 0; i < 10; i++) {
-          ctx.beginPath();
-          ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
-          ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
-          ctx.strokeStyle = `rgba(37, 99, 235, ${Math.random() * 0.2 + 0.1})`;
-          ctx.stroke();
-        }
-
-        // Metni çiz
-        ctx.font = 'bold 24px Arial';
-        ctx.fillStyle = '#2563eb';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // Her karakteri ayrı ayrı çiz ve hafifçe döndür
-        for (let i = 0; i < captchaCode.length; i++) {
-          const x = (canvas.width / captchaCode.length) * (i + 0.5);
-          const y = canvas.height / 2;
-          ctx.save();
-          ctx.translate(x, y);
-          ctx.rotate((Math.random() - 0.5) * 0.4);
-          ctx.fillText(captchaCode[i], 0, 0);
-          ctx.restore();
-        }
-
-        // Noktalar ekle
-        for (let i = 0; i < 50; i++) {
-          ctx.beginPath();
-          ctx.arc(
-            Math.random() * canvas.width,
-            Math.random() * canvas.height,
-            1,
-            0,
-            Math.PI * 2
-          );
-          ctx.fillStyle = `rgba(37, 99, 235, ${Math.random() * 0.2 + 0.1})`;
-          ctx.fill();
-        }
-      });
-    }
-
-    drawCaptcha();
-  }, [captchaCode, activeTab]);
+  // Yeni CAPTCHA kodu oluştur
+  const refreshCaptcha = () => {
+    setCaptchaCode(generateCaptchaCode());
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Captcha kontrolü
     if (formData.captcha.toLowerCase() !== captchaCode.toLowerCase()) {
-      toast.error('Güvenlik kodu hatalı. Lütfen tekrar deneyin.');
+      toast.error(locale === 'en' ? 'Security code is incorrect. Please try again.' : 'Güvenlik kodu hatalı. Lütfen tekrar deneyin.');
       setCaptchaCode(generateCaptchaCode());
       return;
     }
@@ -182,7 +208,7 @@ export default function ContactPage() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success('Mesajınız başarıyla gönderildi.');
+        toast.success(locale === 'en' ? 'Your message has been sent successfully.' : 'Mesajınız başarıyla gönderildi.');
         // Formu temizle
         setFormData({
           name: '',
@@ -201,7 +227,7 @@ export default function ContactPage() {
         throw new Error(result.message);
       }
     } catch (error) {
-      toast.error('Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.');
+      toast.error(locale === 'en' ? 'An error occurred while sending your message. Please try again.' : 'Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.');
       console.error('Form gönderme hatası:', error);
     } finally {
       setIsLoading(false);
@@ -216,7 +242,7 @@ export default function ContactPage() {
           {/* İsim Alanı */}
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-text mb-1">
-              Ad Soyad <span className="text-red-500">*</span>
+              {locale === 'en' ? 'Full Name' : 'Ad Soyad'} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -231,7 +257,7 @@ export default function ContactPage() {
           {/* Email Alanı */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-text mb-1">
-              E-posta <span className="text-red-500">*</span>
+              {locale === 'en' ? 'Email' : 'E-posta'} <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -246,7 +272,7 @@ export default function ContactPage() {
           {/* Telefon Alanı */}
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-text mb-1">
-              Telefon <span className="text-red-500">*</span>
+              {locale === 'en' ? 'Phone' : 'Telefon'} <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
@@ -261,7 +287,7 @@ export default function ContactPage() {
           {/* Şirket Alanı */}
           <div>
             <label htmlFor="company" className="block text-sm font-medium text-text mb-1">
-              Şirket Adı
+              {locale === 'en' ? 'Company Name' : 'Şirket Adı'}
             </label>
             <input
               type="text"
@@ -276,7 +302,7 @@ export default function ContactPage() {
           {(activeTab === 'product' || activeTab === 'service' || activeTab === 'reference') && (
             <div className="md:col-span-2">
               <label htmlFor="product" className="block text-sm font-medium text-text mb-1">
-                Ürün <span className="text-red-500">*</span>
+                {locale === 'en' ? 'Product' : 'Ürün'} <span className="text-red-500">*</span>
               </label>
               <div className="relative" ref={productDropdownRef}>
                 <input
@@ -291,14 +317,14 @@ export default function ContactPage() {
                   }}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
                   required
-                  placeholder="Ürün seçiniz veya aramak için yazın"
+                  placeholder={locale === 'en' ? 'Select or search for a product' : 'Ürün seçiniz veya aramak için yazın'}
                 />
                 {isProductDropdownOpen && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
                     {filteredProducts.map((product, index) => (
                       <div
                         key={index}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-text"
                         onClick={() => {
                           setFormData({...formData, product: product.name});
                           setIsProductDropdownOpen(false);
@@ -316,7 +342,7 @@ export default function ContactPage() {
           {/* Konu Alanı */}
           <div className="md:col-span-2">
             <label htmlFor="subject" className="block text-sm font-medium text-text mb-1">
-              Konu <span className="text-red-500">*</span>
+              {locale === 'en' ? 'Subject' : 'Konu'} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -331,7 +357,7 @@ export default function ContactPage() {
           {/* Mesaj Alanı */}
           <div className="md:col-span-2">
             <label htmlFor="message" className="block text-sm font-medium text-text mb-1">
-              Mesaj <span className="text-red-500">*</span>
+              {locale === 'en' ? 'Message' : 'Mesaj'} <span className="text-red-500">*</span>
             </label>
             <textarea
               id="message"
@@ -346,33 +372,33 @@ export default function ContactPage() {
           {/* Captcha Alanı */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-text mb-2">
-              Güvenlik Kodu <span className="text-red-500">*</span>
+              {locale === 'en' ? 'Security Code' : 'Güvenlik Kodu'} <span className="text-red-500">*</span>
             </label>
-            <div className="flex items-center gap-4">
-              <canvas
-                ref={canvasRef}
-                width={150}
-                height={50}
-                className="rounded border border-gray-300"
+            <div className="space-y-4">
+              <div>
+                <canvas
+                  ref={canvasRef}
+                  width={140}
+                  height={42}
+                  className="w-[140px] h-[42px] bg-white rounded-lg border border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={refreshCaptcha}
+                  className="mt-1 text-xs text-primary hover:text-primary-600 transition-colors"
+                >
+                  {locale === 'en' ? 'New Code' : 'Yeni Kod'}
+                </button>
+              </div>
+              <input
+                type="text"
+                required
+                value={formData.captcha}
+                onChange={(e) => setFormData({...formData, captcha: e.target.value})}
+                className="mt-2 w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder={locale === 'en' ? 'Enter security code' : 'Güvenlik kodunu giriniz'}
               />
-              <button
-                type="button"
-                onClick={() => setCaptchaCode(generateCaptchaCode())}
-                className="p-2 text-primary hover:text-primary-600 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
             </div>
-            <input
-              type="text"
-              required
-              value={formData.captcha}
-              onChange={(e) => setFormData({...formData, captcha: e.target.value})}
-              className="mt-2 w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Güvenlik kodunu giriniz"
-            />
           </div>
         </div>
 
@@ -386,14 +412,14 @@ export default function ContactPage() {
             {isLoading ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Gönderiliyor...
+                {locale === 'en' ? 'Sending...' : 'Gönderiliyor...'}
               </>
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
-                Gönder
+                {locale === 'en' ? 'Send' : 'Gönder'}
               </>
             )}
           </button>
@@ -402,6 +428,8 @@ export default function ContactPage() {
     );
   };
 
+  if (!initialized) return null;
+  
   return (
     <main>
       <Header />
@@ -418,11 +446,11 @@ export default function ContactPage() {
               {/* Left Side - Text */}
               <div className="relative z-10 py-12">
                 <h1 className="text-6xl font-bold text-white mb-4">
-                  İletişim
+                  {locale === 'en' ? 'Contact' : 'İletişim'}
                 </h1>
                 <div className="h-1 w-20 bg-white mb-4"></div>
                 <p className="text-lg text-white/90">
-                  Sorularınız ve talepleriniz için bizimle iletişime geçebilirsiniz
+                  {locale === 'en' ? 'Contact us for your questions and requests' : 'Sorularınız ve talepleriniz için bizimle iletişime geçebilirsiniz'}
                 </p>
               </div>
               
@@ -483,7 +511,7 @@ export default function ContactPage() {
                     : 'bg-gray-100 text-text hover:bg-gray-200'
                 }`}
               >
-                İletişim Formu
+                {locale === 'en' ? 'Contact Form' : 'İletişim Formu'}
               </button>
               <button
                 onClick={() => {
@@ -496,7 +524,7 @@ export default function ContactPage() {
                     : 'bg-gray-100 text-text hover:bg-gray-200'
                 }`}
               >
-                Referans Talebi
+                {locale === 'en' ? 'Reference Request' : 'Referans Talebi'}
               </button>
               <button
                 onClick={() => {
@@ -509,7 +537,7 @@ export default function ContactPage() {
                     : 'bg-gray-100 text-text hover:bg-gray-200'
                 }`}
               >
-                Ürün Talep Formu
+                {locale === 'en' ? 'Product Request Form' : 'Ürün Talep Formu'}
               </button>
               <button
                 onClick={() => {
@@ -522,17 +550,17 @@ export default function ContactPage() {
                     : 'bg-gray-100 text-text hover:bg-gray-200'
                 }`}
               >
-                Servis Talep Formu
+                {locale === 'en' ? 'Service Request Form' : 'Servis Talep Formu'}
               </button>
             </div>
 
             {/* Form Content */}
             <div className="bg-white rounded-xl shadow-soft border border-gray-100 p-8">
               <h2 className="text-2xl font-bold text-text mb-6">
-                {activeTab === 'contact' && 'İletişim Formu'}
-                {activeTab === 'reference' && 'Referans Talebi'}
-                {activeTab === 'product' && 'Ürün Talep Formu'}
-                {activeTab === 'service' && 'Servis Talep Formu'}
+                {activeTab === 'contact' && (locale === 'en' ? 'Contact Form' : 'İletişim Formu')}
+                {activeTab === 'reference' && (locale === 'en' ? 'Reference Request' : 'Referans Talebi')}
+                {activeTab === 'product' && (locale === 'en' ? 'Product Request Form' : 'Ürün Talep Formu')}
+                {activeTab === 'service' && (locale === 'en' ? 'Service Request Form' : 'Servis Talep Formu')}
               </h2>
               {renderForm()}
             </div>
@@ -565,9 +593,11 @@ export default function ContactPage() {
         <div className="container mx-auto px-4 relative">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-text mb-4">İletişim Bilgileri</h2>
+              <h2 className="text-3xl font-bold text-text mb-4">
+                {locale === 'en' ? 'Contact Information' : 'İletişim Bilgileri'}
+              </h2>
               <p className="text-text-light max-w-2xl mx-auto">
-                Size en yakın lokasyonumuz ile iletişime geçebilirsiniz
+                {locale === 'en' ? 'You can contact our nearest location' : 'Size en yakın lokasyonumuz ile iletişime geçebilirsiniz'}
               </p>
             </div>
 
@@ -581,7 +611,7 @@ export default function ContactPage() {
                     : 'bg-white text-text hover:bg-primary/5'
                 }`}
               >
-                Merkez Lokasyonlar
+                {locale === 'en' ? 'Headquarters' : 'Merkez Lokasyonlar'}
               </button>
               <button
                 onClick={() => setActiveLocationTab('subeler')}
@@ -591,7 +621,7 @@ export default function ContactPage() {
                     : 'bg-white text-text hover:bg-primary/5'
                 }`}
               >
-                Şubeler
+                {locale === 'en' ? 'Branches' : 'Şubeler'}
               </button>
               <button
                 onClick={() => setActiveLocationTab('temsilcilikler')}
@@ -601,7 +631,7 @@ export default function ContactPage() {
                     : 'bg-white text-text hover:bg-primary/5'
                 }`}
               >
-                Bölge Temsilcilikleri
+                {locale === 'en' ? 'Regional Offices' : 'Bölge Temsilcilikleri'}
               </button>
             </div>
 
@@ -616,11 +646,15 @@ export default function ContactPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-lg text-text">Merkez</h3>
+                    <h3 className="font-semibold text-lg text-text">
+                      {locale === 'en' ? 'Headquarters' : 'Merkez'}
+                    </h3>
                   </div>
                   <div className="space-y-3">
                     <p className="text-text-light text-sm leading-relaxed">
-                      İkitelli OSB Demirciler Küçük San. Sit. B1 Blok No: 34 K2 Başakşehir - İstanbul
+                      {locale === 'en' 
+                        ? 'İkitelli OSB Demirciler Küçük San. Sit. B1 Blok No: 34 K2 Başakşehir - Istanbul'
+                        : 'İkitelli OSB Demirciler Küçük San. Sit. B1 Blok No: 34 K2 Başakşehir - İstanbul'}
                     </p>
                     <div className="pt-2 space-y-2">
                       <a href="tel:02125673887" className="flex items-center gap-2 text-primary hover:text-primary-600 transition-colors">
@@ -641,7 +675,7 @@ export default function ContactPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span className="text-sm">Faks: 0212 567 42 59</span>
+                        <span className="text-sm">{locale === 'en' ? 'Fax: 0212 567 42 59' : 'Faks: 0212 567 42 59'}</span>
                       </div>
                     </div>
                   </div>
@@ -655,11 +689,15 @@ export default function ContactPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-lg text-text">Mağaza</h3>
+                    <h3 className="font-semibold text-lg text-text">
+                      {locale === 'en' ? 'Store' : 'Mağaza'}
+                    </h3>
                   </div>
                   <div className="space-y-3">
                     <p className="text-text-light text-sm leading-relaxed">
-                      İsmet Paşa Mah. Abdi İpekçi Cad. No: 113/2 Bayrampaşa - İstanbul
+                      {locale === 'en' 
+                        ? 'İsmet Paşa Mah. Abdi İpekçi Cad. No: 113/2 Bayrampaşa - Istanbul'
+                        : 'İsmet Paşa Mah. Abdi İpekçi Cad. No: 113/2 Bayrampaşa - İstanbul'}
                     </p>
                     <div className="pt-2 space-y-2">
                       <a href="tel:02125673887" className="flex items-center gap-2 text-primary hover:text-primary-600 transition-colors">
@@ -680,7 +718,7 @@ export default function ContactPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span className="text-sm">Faks: 0212 567 42 59</span>
+                        <span className="text-sm">{locale === 'en' ? 'Fax: 0212 567 42 59' : 'Faks: 0212 567 42 59'}</span>
                       </div>
                     </div>
                   </div>
@@ -694,11 +732,15 @@ export default function ContactPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-lg text-text">Topçular</h3>
+                    <h3 className="font-semibold text-lg text-text">
+                      {locale === 'en' ? 'Topçular Office' : 'Topçular'}
+                    </h3>
                   </div>
                   <div className="space-y-3">
                     <p className="text-text-light text-sm leading-relaxed">
-                      Rami Kışla Cd. Emintaş 3 San. Sit. No:56-57-58 Topçular - Eyüp - İstanbul
+                      {locale === 'en' 
+                        ? 'Rami Kışla Cd. Emintaş 3 San. Sit. No:56-57-58 Topçular - Eyüp - Istanbul'
+                        : 'Rami Kışla Cd. Emintaş 3 San. Sit. No:56-57-58 Topçular - Eyüp - İstanbul'}
                     </p>
                     <div className="pt-2 space-y-2">
                       <a href="tel:02125015381" className="flex items-center gap-2 text-primary hover:text-primary-600 transition-colors">
@@ -719,7 +761,7 @@ export default function ContactPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span className="text-sm">Faks: 0212 577 37 43</span>
+                        <span className="text-sm">{locale === 'en' ? 'Fax: 0212 577 37 43' : 'Faks: 0212 577 37 43'}</span>
                       </div>
                     </div>
                   </div>
@@ -738,11 +780,15 @@ export default function ContactPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-lg text-text">Esenyurt Şube</h3>
+                    <h3 className="font-semibold text-lg text-text">
+                      {locale === 'en' ? 'Esenyurt Branch' : 'Esenyurt Şube'}
+                    </h3>
                   </div>
                   <div className="space-y-3">
                     <p className="text-text-light text-sm leading-relaxed">
-                      Çakmaklı Mh. Akçaburgaz Mevkii ALKOP Sanayi Sitesi A11 Blok No: 17 Kıraç - Hadımköy
+                      {locale === 'en' 
+                        ? 'Çakmaklı Mh. Akçaburgaz Mevkii ALKOP Sanayi Sitesi A11 Blok No: 17 Kıraç - Hadımköy'
+                        : 'Çakmaklı Mh. Akçaburgaz Mevkii ALKOP Sanayi Sitesi A11 Blok No: 17 Kıraç - Hadımköy'}
                     </p>
                     <div className="pt-2 space-y-2">
                       <a href="tel:02128580081" className="flex items-center gap-2 text-primary hover:text-primary-600 transition-colors">
@@ -763,7 +809,7 @@ export default function ContactPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span className="text-sm">Faks: 0212 858 05 02</span>
+                        <span className="text-sm">{locale === 'en' ? 'Fax: 0212 858 05 02' : 'Faks: 0212 858 05 02'}</span>
                       </div>
                     </div>
                   </div>
@@ -777,18 +823,22 @@ export default function ContactPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-lg text-text">Bursa Ofis</h3>
+                    <h3 className="font-semibold text-lg text-text">
+                      {locale === 'en' ? 'Bursa Office' : 'Bursa Ofis'}
+                    </h3>
                   </div>
                   <div className="space-y-3">
                     <p className="text-text-light text-sm leading-relaxed">
-                      Beşevler Mah. Aktaş Sk. Güleçler İş Merkezi No: 3 Kat: 4 D: 17 Nilüfer / Bursa
+                      {locale === 'en' 
+                        ? 'Beşevler Mah. Aktaş Sk. Güleçler İş Merkezi No: 3 Floor: 4 Office: 17 Nilüfer / Bursa'
+                        : 'Beşevler Mah. Aktaş Sk. Güleçler İş Merkezi No: 3 Kat: 4 D: 17 Nilüfer / Bursa'}
                     </p>
                     <div className="pt-2 space-y-2">
                       <div className="flex items-center gap-2 text-text-light mb-2">
                         <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <span className="text-sm">Temsilci: Murat YALÇINAR</span>
+                        <span className="text-sm">{locale === 'en' ? 'Representative: Murat YALÇINAR' : 'Temsilci: Murat YALÇINAR'}</span>
                       </div>
                       <a href="tel:02244419838" className="flex items-center gap-2 text-primary hover:text-primary-600 transition-colors">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -808,7 +858,7 @@ export default function ContactPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span className="text-sm">Faks: 0224 441 98 39</span>
+                        <span className="text-sm">{locale === 'en' ? 'Fax: 0224 441 98 39' : 'Faks: 0224 441 98 39'}</span>
                       </div>
                     </div>
                   </div>
@@ -828,14 +878,16 @@ export default function ContactPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-lg text-text">Ankara Bölge</h3>
+                    <h3 className="font-semibold text-lg text-text">
+                      {locale === 'en' ? 'Ankara Region' : 'Ankara Bölge'}
+                    </h3>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-text-light mb-2">
                       <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      <span className="text-sm">Temsilci: Ahmet YILMAZ</span>
+                      <span className="text-sm">{locale === 'en' ? 'Representative: Ahmet YILMAZ' : 'Temsilci: Ahmet YILMAZ'}</span>
                     </div>
                     <div className="pt-2 space-y-2">
                       <a href="tel:05321234567" className="flex items-center gap-2 text-primary hover:text-primary-600 transition-colors">
@@ -866,14 +918,16 @@ export default function ContactPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-lg text-text">Ege Bölge</h3>
+                    <h3 className="font-semibold text-lg text-text">
+                      {locale === 'en' ? 'Aegean Region' : 'Ege Bölge'}
+                    </h3>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-text-light mb-2">
                       <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      <span className="text-sm">Temsilci: Mehmet DEMİR</span>
+                      <span className="text-sm">{locale === 'en' ? 'Representative: Mehmet DEMİR' : 'Temsilci: Mehmet DEMİR'}</span>
                     </div>
                     <div className="pt-2 space-y-2">
                       <a href="tel:05331234567" className="flex items-center gap-2 text-primary hover:text-primary-600 transition-colors">
@@ -903,14 +957,16 @@ export default function ContactPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-lg text-text">Trakya Bölge</h3>
+                    <h3 className="font-semibold text-lg text-text">
+                      {locale === 'en' ? 'Thrace Region' : 'Trakya Bölge'}
+                    </h3>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-text-light mb-2">
                       <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      <span className="text-sm">Temsilci: Ali KAYA</span>
+                      <span className="text-sm">{locale === 'en' ? 'Representative: Ali KAYA' : 'Temsilci: Ali KAYA'}</span>
                     </div>
                     <div className="pt-2 space-y-2">
                       <a href="tel:05341234567" className="flex items-center gap-2 text-primary hover:text-primary-600 transition-colors">

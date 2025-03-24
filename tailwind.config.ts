@@ -14,7 +14,7 @@ export default {
           light: '#FFB865',
           dark: '#E08E2F',
           50: '#FFF3E5',
-          100: '#FFE5CC',
+          100: '#333333',
           200: '#FFD1A3',
           300: '#FFBD7A',
           400: '#FFA952',
@@ -31,7 +31,7 @@ export default {
         },
         text: {
           DEFAULT: '#1A1A1A',
-          light: '#4B5563',
+          light: '#374151',
           muted: '#6B7280',
         },
         accent: {

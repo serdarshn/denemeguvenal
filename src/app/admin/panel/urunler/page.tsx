@@ -124,13 +124,13 @@ export default function ProductsPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       {/* Başlık ve Yeni Ürün Ekleme Butonları */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Ürün Yönetimi</h1>
+        <h1 className="text-2xl font-bold text-text mb-4">Ürün Yönetimi</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {PRODUCT_TYPES.map((type) => (
             <Link
               key={type.id}
               href={`/admin/panel/urunler/ekle?type=${type.id}`}
-              className={`flex items-center justify-center gap-2 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow border-2 border-${type.color}-500/20 hover:border-${type.color}-500`}
+              className={`flex items-center justify-center gap-2 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow border-2 border-${type.color}-500/20 hover:border-${type.color}-500 text-text hover:text-${type.color}-600`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -146,7 +146,7 @@ export default function ProductsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Arama */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text mb-1">
               Ürün Ara
             </label>
             <input
@@ -154,19 +154,19 @@ export default function ProductsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Ürün adı veya açıklama ile ara..."
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
             />
           </div>
 
           {/* Tip Filtresi */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text mb-1">
               Ürün Tipi
             </label>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text"
             >
               <option value="all">Tümü</option>
               {PRODUCT_TYPES.map((type) => (
@@ -183,21 +183,21 @@ export default function ProductsPage() {
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-100">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-text font-semibold">
                   Ürün
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-primary font-bold">
                   Tip
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-text font-semibold">
                   Kategori
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text uppercase tracking-wider">
                   Kampanya
                 </th>
-                <th scope="col" className="relative px-6 py-3 text-center">
+                <th scope="col" className="relative px-6 py-3 text-center text-text">
                   İşlemler
                 </th>
               </tr>
@@ -217,20 +217,20 @@ export default function ProductsPage() {
                         />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                        <div className="text-sm text-gray-500">{product.description?.substring(0, 50) || 'Açıklama yok'}...</div>
+                        <div className="text-sm font-medium text-text">{product.name}</div>
+                        <div className="text-sm text-text-light">{product.description?.substring(0, 50) || 'Açıklama yok'}...</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${PRODUCT_TYPES.find(t => t.id === product.type)?.color}-100 text-${PRODUCT_TYPES.find(t => t.id === product.type)?.color}-800`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold text-primary`}>
                       {PRODUCT_TYPES.find(t => t.id === product.type)?.name}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{product.category}</div>
+                    <div className="text-sm text-text">{product.category}</div>
                     {product.subcategory && (
-                      <div className="text-sm text-gray-500">{product.subcategory}</div>
+                      <div className="text-sm text-text-light">{product.subcategory}</div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -239,7 +239,7 @@ export default function ProductsPage() {
                         Aktif
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-text">
                         Yok
                       </span>
                     )}
@@ -256,12 +256,12 @@ export default function ProductsPage() {
                         Düzenle
                       </Link>
                       <button
-                        onClick={() => handleDeleteProduct(product.id)}
-                        disabled={deleteLoading === product.id}
+                        onClick={() => handleDeleteProduct(product.id.toString())}
+                        disabled={deleteLoading === product.id.toString()}
                         className="text-red-600 hover:text-red-800 flex items-center disabled:opacity-50"
                       >
-                        {deleteLoading === product.id ? (
-                          <div className="w-4 h-4 border-t-2 border-b-2 border-red-600 rounded-full animate-spin mr-1"></div>
+                        {deleteLoading === product.id.toString() ? (
+                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin mr-1"></div>
                         ) : (
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const { i18n } = require('./next-i18next.config')
+
 const nextConfig = {
   images: {
     domains: ['images.pexels.com'],
@@ -9,6 +11,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  i18n,
 }
 
 module.exports = nextConfig 

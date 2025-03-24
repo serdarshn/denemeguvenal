@@ -9,11 +9,12 @@ import { Product } from '@/data/products';
 
 interface Props {
   product: Product;
+  lang?: 'tr' | 'en';
 }
 
 type TabType = 'overview' | 'technical' | 'accessories' | 'contact';
 
-export default function ProductDetailContent({ product }: Props) {
+export default function ProductDetailContent({ product, lang = 'tr' }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [formattedEndDate, setFormattedEndDate] = useState<string>('');
@@ -22,9 +23,49 @@ export default function ProductDetailContent({ product }: Props) {
   useEffect(() => {
     setIsClient(true);
     if (product.campaign?.endDate) {
-      setFormattedEndDate(new Date(product.campaign.endDate).toLocaleDateString('tr-TR'));
+      setFormattedEndDate(new Date(product.campaign.endDate).toLocaleDateString(lang === 'en' ? 'en-US' : 'tr-TR'));
     }
-  }, [product.campaign?.endDate]);
+  }, [product.campaign?.endDate, lang]);
+
+  // Debug için çeviri durumunu kontrol et
+  console.log('Current language:', lang);
+  console.log('Product translations:', product.translations);
+  console.log('Has EN translation:', Boolean(product.translations?.en));
+
+  // Dile göre içeriği seç
+  const content = lang === 'en' && product.translations?.en ? {
+    name: product.translations.en.name,
+    description: product.translations.en.description,
+    specs: product.translations.en.specs || [],
+    standardAccessories: product.translations.en.standardAccessories || [],
+    optionalAccessories: product.translations.en.optionalAccessories || []
+  } : {
+    name: product.name,
+    description: product.description,
+    specs: product.specs || [],
+    standardAccessories: product.standardAccessories || [],
+    optionalAccessories: product.optionalAccessories || []
+  };
+
+  // Debug için seçilen içeriği kontrol et
+  console.log('Selected content:', content);
+
+  // Dile göre tab başlıkları
+  const tabLabels = {
+    overview: lang === 'en' ? 'Overview' : 'Genel Bakış',
+    technical: lang === 'en' ? 'Technical' : 'Teknik',
+    accessories: lang === 'en' ? 'Accessories' : 'Aksesuarlar',
+    contact: lang === 'en' ? 'Contact' : 'İletişim'
+  };
+
+  // Dile göre ürün tipleri
+  const productTypes = {
+    products: lang === 'en' ? 'Products' : 'Ürünler',
+    used: lang === 'en' ? 'Used' : 'İkinci El',
+    spare: lang === 'en' ? 'Spare Parts' : 'Yedek Parça',
+    accessories: lang === 'en' ? 'Accessories' : 'Aksesuar',
+    campaign: lang === 'en' ? 'Campaign' : 'Kampanya'
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -35,7 +76,7 @@ export default function ProductDetailContent({ product }: Props) {
           <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-900 transform -skew-y-6 origin-top-left scale-110"></div>
           <div className="container mx-auto px-4 relative">
             <div className="max-w-7xl mx-auto py-16 lg:py-24">
-              <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4">{product.name}</h1>
+              <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4">{content.name}</h1>
               <div className="mt-4">
                 <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
                   product.type === 'products' ? 'bg-white/10 text-white' :
@@ -43,11 +84,7 @@ export default function ProductDetailContent({ product }: Props) {
                   product.type === 'spare' ? 'bg-blue-500/90 text-white' :
                   'bg-green-500/90 text-white'
                 }`}>
-                  {product.type === 'products' ? 'Ürünler' :
-                   product.type === 'used' ? 'İkinci El' :
-                   product.type === 'spare' ? 'Yedek Parça' :
-                   product.type === 'accessories' ? 'Aksesuar' :
-                   'Kampanya'}
+                  {productTypes[product.type]}
                 </span>
               </div>
             </div>
@@ -63,7 +100,7 @@ export default function ProductDetailContent({ product }: Props) {
                 <div className="aspect-[4/3] relative rounded-lg overflow-hidden shadow-lg">
                   <Image
                     src={product.images?.[activeImageIndex] || product.image}
-                    alt={product.name}
+                    alt={content.name}
                     fill
                     className="object-cover"
                     priority
@@ -82,7 +119,7 @@ export default function ProductDetailContent({ product }: Props) {
                       >
                         <Image
                           src={image}
-                          alt={`${product.name} - ${index + 1}`}
+                          alt={`${content.name} - ${index + 1}`}
                           fill
                           className="object-cover"
                         />
@@ -93,13 +130,13 @@ export default function ProductDetailContent({ product }: Props) {
 
                 {/* Teklif İste Butonu */}
                 <Link
-                  href="/iletisim"
+                  href={`/iletisim?lang=${lang}`}
                   className="w-full bg-primary hover:bg-primary-600 text-white py-4 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                  Teklif İste
+                  {lang === 'en' ? 'Request Quote' : 'Teklif İste'}
                 </Link>
               </div>
 
@@ -109,10 +146,10 @@ export default function ProductDetailContent({ product }: Props) {
                 <div className="bg-white rounded-lg shadow-lg mb-6">
                   <div className="grid grid-cols-4 gap-2">
                     {[
-                      { id: 'overview', label: 'Genel Bakış' },
-                      { id: 'technical', label: 'Teknik' },
-                      { id: 'accessories', label: 'Aksesuarlar' },
-                      { id: 'contact', label: 'İletişim' },
+                      { id: 'overview', label: tabLabels.overview },
+                      { id: 'technical', label: tabLabels.technical },
+                      { id: 'accessories', label: tabLabels.accessories },
+                      { id: 'contact', label: tabLabels.contact },
                     ].map((tab) => (
                       <button
                         key={tab.id}
@@ -138,15 +175,15 @@ export default function ProductDetailContent({ product }: Props) {
                             <div className="space-y-2">
                               {product.oldPrice && (
                                 <div className="text-gray-500 line-through text-lg">
-                                  {product.oldPrice.toLocaleString('tr-TR')} ₺
+                                  {product.oldPrice.toLocaleString(lang === 'en' ? 'en-US' : 'tr-TR')} {lang === 'en' ? 'USD' : '₺'}
                                 </div>
                               )}
                               <div className="text-4xl font-bold text-primary">
-                                {product.price?.toLocaleString('tr-TR')} ₺
+                                {product.price?.toLocaleString(lang === 'en' ? 'en-US' : 'tr-TR')} {lang === 'en' ? 'USD' : '₺'}
                               </div>
                               {isClient && product.campaign?.endDate && (
                                 <div className="text-sm text-gray-600 mt-2">
-                                  Kampanya Bitiş: {formattedEndDate}
+                                  {lang === 'en' ? 'Campaign Ends: ' : 'Kampanya Bitiş: '}{formattedEndDate}
                                 </div>
                               )}
                             </div>
@@ -154,31 +191,39 @@ export default function ProductDetailContent({ product }: Props) {
                         ) : (
                           product.price && (
                             <div className="text-4xl font-bold text-primary">
-                              {product.price.toLocaleString('tr-TR')} ₺
+                              {product.price.toLocaleString(lang === 'en' ? 'en-US' : 'tr-TR')} {lang === 'en' ? 'USD' : '₺'}
                             </div>
                           )
                         )}
                       </div>
                       <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
-                        <p className="text-gray-600 mb-8 whitespace-pre-line">{product.description}</p>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-4">{content.name}</h1>
+                        <p className="text-gray-600 mb-8 whitespace-pre-line">{content.description}</p>
                       </div>
                     </div>
                   )}
 
                   {activeTab === 'technical' && (
                     <div className="space-y-6">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-2">Teknik Özellikler</h2>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                        {lang === 'en' ? 'Technical Specifications' : 'Teknik Özellikler'}
+                      </h2>
                       <div className="grid gap-4 max-h-[500px] overflow-y-auto pr-4">
-                        {product.specs.map((spec, index) => (
-                          <div key={index} className="bg-gray-100 rounded-lg p-2 shadow-md hover:bg-[#FFA500] group transition-colors relative">
-                            <div className="grid grid-cols-2 items-center">
-                              <span className="text-gray-600 text-sm group-hover:text-white pl-4">{spec.label}</span>
-                              <span className="font-medium text-gray-900 text-sm group-hover:text-white pl-8">{spec.value}</span>
+                        {content.specs && content.specs.length > 0 ? (
+                          content.specs.map((spec, index) => (
+                            <div key={index} className="bg-gray-100 rounded-lg p-2 shadow-md hover:bg-[#FFA500] group transition-colors relative">
+                              <div className="grid grid-cols-2 items-center">
+                                <span className="text-gray-600 text-sm group-hover:text-white pl-4">{spec.label}</span>
+                                <span className="font-medium text-gray-900 text-sm group-hover:text-white pl-8">{spec.value}</span>
+                              </div>
+                              <div className="absolute left-1/2 top-1/2 -translate-y-1/2 w-[1px] h-4/5 bg-gray-300 group-hover:bg-white"></div>
                             </div>
-                            <div className="absolute left-1/2 top-1/2 -translate-y-1/2 w-[1px] h-4/5 bg-gray-300 group-hover:bg-white"></div>
-                          </div>
-                        ))}
+                          ))
+                        ) : (
+                          <p className="text-primary italic">
+                            {lang === 'en' ? 'No Technical Specifications Found' : 'Teknik Özellik Bulunamadı'}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -187,30 +232,38 @@ export default function ProductDetailContent({ product }: Props) {
                     <div className="space-y-8 grid grid-cols-1 gap-8">
                       <div className="flex flex-col md:flex-row justify-between gap-4">
                         <div className="flex flex-col w-full md:w-1/2">
-                          <h3 className="text-xl font-bold text-gray-900 mb-2">Standart Aksesuarlar</h3>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            {lang === 'en' ? 'Standard Accessories' : 'Standart Aksesuarlar'}
+                          </h3>
                           <div className="grid grid-cols-1 gap-4">
-                            {product.standardAccessories && product.standardAccessories.length > 0 ? (
-                              product.standardAccessories.map((accessory, index) => (
+                            {content.standardAccessories && content.standardAccessories.length > 0 ? (
+                              content.standardAccessories.map((accessory, index) => (
                                 <div key={index} className="bg-gray-100 rounded-lg p-2 shadow-md hover:bg-[#FFA500] group transition-colors">
                                   <p className="text-gray-600 text-sm font-medium p-1 rounded-md group-hover:text-white">{accessory}</p>
                                 </div>
                               ))
                             ) : (
-                              <p>Standart aksesuar bulunamadı.</p>
+                              <p className="text-primary italic">
+                                {lang === 'en' ? 'No Standard Accessories Found' : 'Standart aksesuar bulunamadı'}
+                              </p>
                             )}
                           </div>
                         </div>
                         <div className="flex flex-col w-full md:w-1/2">
-                          <h3 className="text-xl font-bold text-gray-900 mb-2">Opsiyonel Aksesuarlar</h3>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            {lang === 'en' ? 'Optional Accessories' : 'Opsiyonel Aksesuarlar'}
+                          </h3>
                           <div className="grid grid-cols-1 gap-4">
-                            {product.optionalAccessories && product.optionalAccessories.length > 0 ? (
-                              product.optionalAccessories.map((accessory, index) => (
+                            {content.optionalAccessories && content.optionalAccessories.length > 0 ? (
+                              content.optionalAccessories.map((accessory, index) => (
                                 <div key={index} className="bg-gray-100 rounded-lg p-2 shadow-md hover:bg-[#FFA500] group transition-colors">
                                   <p className="text-gray-600 text-sm font-medium p-1 rounded-md group-hover:text-white">{accessory}</p>
                                 </div>
                               ))
                             ) : (
-                              <p>Opsiyonel aksesuar bulunamadı.</p>
+                              <p className="text-primary italic">
+                                {lang === 'en' ? 'No Optional Accessories Found' : 'Opsiyonel aksesuar bulunamadı'}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -220,7 +273,9 @@ export default function ProductDetailContent({ product }: Props) {
 
                   {activeTab === 'contact' && (
                     <div className="space-y-6">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-4">İletişim</h2>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                        {lang === 'en' ? 'Contact' : 'İletişim'}
+                      </h2>
                       <div className="bg-gray-50 rounded-lg p-6">
                         <div className="flex items-center gap-4 mb-6">
                           <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
@@ -229,8 +284,12 @@ export default function ProductDetailContent({ product }: Props) {
                             </svg>
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Detaylı Bilgi ve Teklif İçin</h3>
-                            <p className="text-gray-600">Uzman ekibimiz size yardımcı olmaktan mutluluk duyacaktır</p>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {lang === 'en' ? 'For Detailed Information and Quote' : 'Detaylı Bilgi ve Teklif İçin'}
+                            </h3>
+                            <p className="text-gray-600">
+                              {lang === 'en' ? 'Our expert team will be happy to help you' : 'Uzman ekibimiz size yardımcı olmaktan mutluluk duyacaktır'}
+                            </p>
                           </div>
                         </div>
                         <div className="grid gap-4">
@@ -241,7 +300,7 @@ export default function ProductDetailContent({ product }: Props) {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
-                            Bizi Arayın
+                            {lang === 'en' ? 'Call Us' : 'Bizi Arayın'}
                           </Link>
                           <Link
                             href="https://wa.me/902122222222"
@@ -253,13 +312,13 @@ export default function ProductDetailContent({ product }: Props) {
                             WhatsApp
                           </Link>
                           <Link
-                            href="/iletisim"
+                            href={`/iletisim?lang=${lang}`}
                             className="flex items-center justify-center gap-2 bg-gray-100 text-gray-600 px-6 py-4 rounded-lg hover:bg-gray-200 transition-colors"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
-                            E-posta Gönderin
+                            {lang === 'en' ? 'Send Email' : 'E-posta Gönderin'}
                           </Link>
                         </div>
                       </div>

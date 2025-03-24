@@ -1,6 +1,18 @@
 // Ürün tipi için enum
 export type ProductType = 'products' | 'used' | 'spare' | 'accessories' | 'campaign';
 
+// Çeviri arayüzü
+export interface Translation {
+  name: string;
+  description: string;
+  specs: {
+    label: string;
+    value: string;
+  }[];
+  standardAccessories?: string[];
+  optionalAccessories?: string[];
+}
+
 // Ürün arayüzü
 export interface Product {
   id: string;
@@ -20,6 +32,9 @@ export interface Product {
   standardAccessories?: string[]; // Standart Aksesuarlar
   optionalAccessories?: string[]; // Opsiyonel Aksesuarlar
   campaign?: Campaign;
+  translations?: {
+    en?: Translation;
+  };
 }
 
 // Kampanya tipi için interface

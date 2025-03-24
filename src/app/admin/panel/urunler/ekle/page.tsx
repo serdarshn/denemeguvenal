@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, Fragment } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
 
-const CATEGORIES = {
+export const CATEGORIES = {
   products: [
     { id: 'cnc-double', name: 'CNC Double Kolon Dik İşleme Merkezi' },
     { 
@@ -128,33 +128,12 @@ interface CategoryBase {
   subcategories?: CategoryBase[];
 }
 
-// Kategori seçeneklerini düzleştiren yardımcı fonksiyon
-const flattenCategories = (categories: CategoryBase[], prefix = '') => {
-  let options: { id: string; name: string }[] = [];
-  
-  categories.forEach(category => {
-    // Ana kategoriyi ekle
-    options.push({
-      id: category.id,
-      name: prefix ? `${prefix} > ${category.name}` : category.name
-    });
-    
-    // Alt kategorileri ekle
-    if (category.subcategories) {
-      const newPrefix = prefix ? `${prefix} > ${category.name}` : category.name;
-      const subOptions = flattenCategories(category.subcategories, newPrefix);
-      options = [...options, ...subOptions];
-    }
-  });
-  
-  return options;
-};
-
 function AddProductContent() {
   const searchParams = useSearchParams();
   const productType = searchParams.get('type') || 'products';
   const router = useRouter();
   
+  const [activeTab, setActiveTab] = useState('tr'); // Dil tabı için state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -171,17 +150,43 @@ function AddProductContent() {
     campaign: productType === 'campaign' ? {
       type: 'discount' as const,
       endDate: new Date().toISOString().split('T')[0]
-    } : null
+    } : null,
+    translations: {
+      en: {
+        name: '',
+        description: '',
+        specifications: [{ id: 'spec-0', label: '', value: '' }],
+        standardAccessories: [] as string[],
+        optionalAccessories: [] as string[]
+      }
+    }
   });
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const type = searchParams.get('type');
     if (type) {
+      // Her ürün tipi için varsayılan kategori
+      let defaultCategory = '';
+      switch(type) {
+        case 'used':
+          defaultCategory = 'all'; // İkinci El için varsayılan kategori
+          break;
+        case 'spare':
+          defaultCategory = 'all'; // Yedek Parçalar için varsayılan kategori
+          break;
+        case 'accessories':
+          defaultCategory = 'all'; // Aksesuarlar için varsayılan kategori
+          break;
+        case 'campaign':
+          defaultCategory = 'all-campaigns'; // Kampanyalar için varsayılan kategori
+          break;
+      }
+
       setFormData(prev => ({
         ...prev,
         type: type,
-        category: type === 'campaign' ? 'all-campaigns' : '',
+        category: defaultCategory,
         campaign: type === 'campaign' ? {
           type: 'discount',
           endDate: new Date().toISOString().split('T')[0]
@@ -277,25 +282,52 @@ function AddProductContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
     
-    try {
-      console.log('Form gönderiliyor:', { productType, formData });
+    if (!formData.name || !formData.description || !formData.category) {
+      toast.error('Lütfen tüm zorunlu alanları doldurun');
+      return;
+    }
 
+    try {
+      setLoading(true);
+      setError('');
+      
       const formDataToSend = new FormData();
-      formDataToSend.append('type', productType);
+      formDataToSend.append('type', formData.type);
+      
+      console.log('Gönderilen form verileri:', {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        type: formData.type
+      });
+      
+      // JSON verilerini ekle
       formDataToSend.append('data', JSON.stringify({
         name: formData.name,
         description: formData.description,
         category: formData.category,
         price: formData.price,
         oldPrice: formData.oldPrice,
-        type: formData.type,
+        specifications: formData.specifications.map(spec => ({
+          label: spec.label,
+          value: spec.value
+        })),
+        standardAccessories: formData.standardAccessories,
+        optionalAccessories: formData.optionalAccessories,
         campaign: formData.campaign,
-        specifications: formData.specifications.filter(spec => spec.label && spec.value),
-        standardAccessories: formData.standardAccessories.filter(acc => acc.trim() !== ''),
-        optionalAccessories: formData.optionalAccessories.filter(acc => acc.trim() !== '')
+        translations: {
+          en: formData.translations.en.name || formData.translations.en.description ? {
+            name: formData.translations.en.name,
+            description: formData.translations.en.description,
+            specifications: formData.translations.en.specifications.map(spec => ({
+              label: spec.label,
+              value: spec.value
+            })),
+            standardAccessories: formData.translations.en.standardAccessories,
+            optionalAccessories: formData.translations.en.optionalAccessories
+          } : undefined
+        }
       }));
 
       // Görselleri ekle
@@ -330,7 +362,16 @@ function AddProductContent() {
           campaign: productType === 'campaign' ? {
             type: 'discount',
             endDate: new Date().toISOString().split('T')[0]
-          } : null
+          } : null,
+          translations: {
+            en: {
+              name: '',
+              description: '',
+              specifications: [{ id: 'spec-0', label: '', value: '' }],
+              standardAccessories: [],
+              optionalAccessories: []
+            }
+          }
         });
         // Ürünler sayfasına yönlendir
         router.push('/admin/panel/urunler');
@@ -359,6 +400,34 @@ function AddProductContent() {
           } Ekle` : 'Yeni Ürün Ekle'}
         </h1>
 
+        {/* Dil Seçimi Tabları */}
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-8">
+          <div className="flex space-x-4 border-b">
+            <button
+              type="button"
+              onClick={() => setActiveTab('tr')}
+              className={`px-4 py-2 font-medium rounded-t-lg ${
+                activeTab === 'tr'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-500 hover:text-primary'
+              }`}
+            >
+              Türkçe
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('en')}
+              className={`px-4 py-2 font-medium rounded-t-lg ${
+                activeTab === 'en'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-500 hover:text-primary'
+              }`}
+            >
+              İngilizce
+            </button>
+          </div>
+        </div>
+
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
             {error}
@@ -368,135 +437,213 @@ function AddProductContent() {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Temel Bilgiler */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Temel Bilgiler</h2>
+            <h2 className="text-lg font-semibold text-text mb-4">
+              {activeTab === 'tr' ? 'Temel Bilgiler' : 'Basic Information'}
+            </h2>
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ürün Adı
+                <label className="block text-sm font-medium text-text mb-1">
+                  {activeTab === 'tr' ? 'Ürün Adı' : 'Product Name'}
                 </label>
                 <input
                   type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required={activeTab === 'tr'}
+                  value={activeTab === 'tr' ? formData.name : formData.translations.en.name}
+                  onChange={(e) => {
+                    if (activeTab === 'tr') {
+                      setFormData(prev => ({ ...prev, name: e.target.value }));
+                    } else {
+                      setFormData(prev => ({
+                        ...prev,
+                        translations: {
+                          ...prev.translations,
+                          en: { ...prev.translations.en, name: e.target.value }
+                        }
+                      }));
+                    }
+                  }}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
+                  placeholder={activeTab === 'tr' ? 'Ürün adını girin' : 'Enter product name'}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Açıklama
+                <label className="block text-sm font-medium text-text mb-1">
+                  {activeTab === 'tr' ? 'Açıklama' : 'Description'}
                 </label>
                 <textarea
-                  required
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  required={activeTab === 'tr'}
+                  value={activeTab === 'tr' ? formData.description : formData.translations.en.description}
+                  onChange={(e) => {
+                    if (activeTab === 'tr') {
+                      setFormData(prev => ({ ...prev, description: e.target.value }));
+                    } else {
+                      setFormData(prev => ({
+                        ...prev,
+                        translations: {
+                          ...prev.translations,
+                          en: { ...prev.translations.en, description: e.target.value }
+                        }
+                      }));
+                    }
+                  }}
                   rows={4}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
+                  placeholder={activeTab === 'tr' ? 'Ürün açıklamasını girin' : 'Enter product description'}
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Kategori
-                </label>
-                <select
-                  required
-                  value={formData.category}
-                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  <option value="">Kategori Seçin</option>
-                  {productType === 'products' ? (
-                    // Ürünler için hiyerarşik kategorileri göster
-                    flattenCategories(CATEGORIES[productType as keyof typeof CATEGORIES] || []).map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.name}
-                      </option>
-                    ))
-                  ) : (
-                    // Diğer ürün tipleri için normal kategorileri göster
-                    CATEGORIES[productType as keyof typeof CATEGORIES]?.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
+              {activeTab === 'tr' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-text mb-1">
+                      Kategori
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-text"
+                      required
+                    >
+                      <option value="">Kategori Seçin</option>
+                      {CATEGORIES[productType as keyof typeof CATEGORIES].map((category: CategoryBase) => (
+                        <Fragment key={category.id}>
+                          <option value={category.id}>{category.name}</option>
+                          {category.subcategories?.map((subcat: CategoryBase) => (
+                            <Fragment key={subcat.id}>
+                              <option value={subcat.id}>&nbsp;&nbsp;{subcat.name}</option>
+                              {subcat.subcategories?.map((subsubcat: CategoryBase) => (
+                                <option key={subsubcat.id} value={subsubcat.id}>
+                                  &nbsp;&nbsp;&nbsp;&nbsp;{subsubcat.name}
+                                </option>
+                              ))}
+                            </Fragment>
+                          ))}
+                        </Fragment>
+                      ))}
+                    </select>
+                  </div>
 
-              {productType !== 'campaign' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fiyat (TL)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
+                  {productType !== 'campaign' && (
+                    <div>
+                      <label className="block text-sm font-medium text-text mb-1">
+                        Fiyat (TL)
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.price}
+                        onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent text-text placeholder-text-light/60"
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
 
-          {/* Görseller */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Ürün Görselleri</h2>
-            <div className="space-y-4">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary hover:file:bg-primary-100"
-              />
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {formData.images.map((image, index) => (
-                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
-                    <Image
-                      src={URL.createObjectURL(image)}
-                      alt={`Ürün görseli ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
+          {/* Görseller - Sadece Türkçe tabında göster */}
+          {activeTab === 'tr' && (
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-text mb-4">Ürün Görselleri</h2>
+              <div className="space-y-4">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="block w-full text-sm text-text-light file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary hover:file:bg-primary-100"
+                />
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                      <Image
+                        src={URL.createObjectURL(image)}
+                        alt={`Ürün görseli ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Özellikler */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Teknik Özellikler</h2>
+              <h2 className="text-lg font-semibold text-text">
+                {activeTab === 'tr' ? 'Teknik Özellikler' : 'Technical Specifications'}
+              </h2>
               <button
                 type="button"
-                onClick={handleSpecificationAdd}
+                onClick={activeTab === 'tr' ? handleSpecificationAdd : () => {
+                  setFormData(prev => ({
+                    ...prev,
+                    translations: {
+                      ...prev.translations,
+                      en: {
+                        ...prev.translations.en,
+                        specifications: [
+                          ...prev.translations.en.specifications,
+                          { id: `spec-${prev.translations.en.specifications.length}`, label: '', value: '' }
+                        ]
+                      }
+                    }
+                  }));
+                }}
                 className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-full text-primary bg-primary-50 hover:bg-primary-100"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Özellik Ekle
+                {activeTab === 'tr' ? 'Özellik Ekle' : 'Add Specification'}
               </button>
             </div>
             <div className="space-y-4">
-              {formData.specifications.map((spec, index) => (
-                <div key={index} className="grid grid-cols-2 gap-4">
+              {(activeTab === 'tr' ? formData.specifications : formData.translations.en.specifications).map((spec, index) => (
+                <div key={spec.id} className="grid grid-cols-2 gap-4">
                   <input
                     type="text"
                     value={spec.label}
-                    onChange={(e) => handleSpecificationChange(index, 'label', e.target.value)}
-                    placeholder="Özellik (örn: Motor Gücü)"
+                    onChange={(e) => {
+                      if (activeTab === 'tr') {
+                        handleSpecificationChange(index, 'label', e.target.value);
+                      } else {
+                        const newSpecs = [...formData.translations.en.specifications];
+                        newSpecs[index] = { ...newSpecs[index], label: e.target.value };
+                        setFormData(prev => ({
+                          ...prev,
+                          translations: {
+                            ...prev.translations,
+                            en: { ...prev.translations.en, specifications: newSpecs }
+                          }
+                        }));
+                      }
+                    }}
+                    placeholder={activeTab === 'tr' ? "Özellik (örn: Motor Gücü)" : "Feature (e.g.: Engine Power)"}
                     className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                   <input
                     type="text"
                     value={spec.value}
-                    onChange={(e) => handleSpecificationChange(index, 'value', e.target.value)}
-                    placeholder="Değer (örn: 7.5 kW)"
+                    onChange={(e) => {
+                      if (activeTab === 'tr') {
+                        handleSpecificationChange(index, 'value', e.target.value);
+                      } else {
+                        const newSpecs = [...formData.translations.en.specifications];
+                        newSpecs[index] = { ...newSpecs[index], value: e.target.value };
+                        setFormData(prev => ({
+                          ...prev,
+                          translations: {
+                            ...prev.translations,
+                            en: { ...prev.translations.en, specifications: newSpecs }
+                          }
+                        }));
+                      }
+                    }}
+                    placeholder={activeTab === 'tr' ? "Değer (örn: 7.5 kW)" : "Value (e.g.: 7.5 kW)"}
                     className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
@@ -510,31 +657,73 @@ function AddProductContent() {
               {/* Standart Aksesuarlar */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Standart Aksesuarlar</h2>
+                  <h2 className="text-lg font-semibold text-text">
+                    {activeTab === 'tr' ? 'Standart Aksesuarlar' : 'Standard Accessories'}
+                  </h2>
                   <button
                     type="button"
-                    onClick={handleStandardAccessoryAdd}
+                    onClick={activeTab === 'tr' ? handleStandardAccessoryAdd : () => {
+                      setFormData(prev => ({
+                        ...prev,
+                        translations: {
+                          ...prev.translations,
+                          en: {
+                            ...prev.translations.en,
+                            standardAccessories: [...prev.translations.en.standardAccessories, '']
+                          }
+                        }
+                      }));
+                    }}
                     className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-full text-primary bg-primary-50 hover:bg-primary-100"
                   >
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Aksesuar Ekle
+                    {activeTab === 'tr' ? 'Aksesuar Ekle' : 'Add Accessory'}
                   </button>
                 </div>
                 <div className="space-y-4">
-                  {formData.standardAccessories.map((accessory, index) => (
+                  {(activeTab === 'tr' ? formData.standardAccessories : formData.translations.en.standardAccessories).map((accessory, index) => (
                     <div key={index} className="flex items-center space-x-2">
                       <input
                         type="text"
                         value={accessory}
-                        onChange={(e) => handleStandardAccessoryChange(index, e.target.value)}
-                        placeholder="Aksesuar adı"
+                        onChange={(e) => {
+                          if (activeTab === 'tr') {
+                            handleStandardAccessoryChange(index, e.target.value);
+                          } else {
+                            const newAccessories = [...formData.translations.en.standardAccessories];
+                            newAccessories[index] = e.target.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              translations: {
+                                ...prev.translations,
+                                en: { ...prev.translations.en, standardAccessories: newAccessories }
+                              }
+                            }));
+                          }
+                        }}
+                        placeholder={activeTab === 'tr' ? "Aksesuar adı" : "Accessory name"}
                         className="flex-grow px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                       <button
                         type="button"
-                        onClick={() => handleStandardAccessoryRemove(index)}
+                        onClick={() => {
+                          if (activeTab === 'tr') {
+                            handleStandardAccessoryRemove(index);
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              translations: {
+                                ...prev.translations,
+                                en: {
+                                  ...prev.translations.en,
+                                  standardAccessories: prev.translations.en.standardAccessories.filter((_, i) => i !== index)
+                                }
+                              }
+                            }));
+                          }
+                        }}
                         className="flex-shrink-0 text-red-500 hover:text-red-700"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -549,31 +738,73 @@ function AddProductContent() {
               {/* Opsiyonel Aksesuarlar */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Opsiyonel Aksesuarlar</h2>
+                  <h2 className="text-lg font-semibold text-text">
+                    {activeTab === 'tr' ? 'Opsiyonel Aksesuarlar' : 'Optional Accessories'}
+                  </h2>
                   <button
                     type="button"
-                    onClick={handleOptionalAccessoryAdd}
+                    onClick={activeTab === 'tr' ? handleOptionalAccessoryAdd : () => {
+                      setFormData(prev => ({
+                        ...prev,
+                        translations: {
+                          ...prev.translations,
+                          en: {
+                            ...prev.translations.en,
+                            optionalAccessories: [...prev.translations.en.optionalAccessories, '']
+                          }
+                        }
+                      }));
+                    }}
                     className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-full text-primary bg-primary-50 hover:bg-primary-100"
                   >
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Aksesuar Ekle
+                    {activeTab === 'tr' ? 'Aksesuar Ekle' : 'Add Accessory'}
                   </button>
                 </div>
                 <div className="space-y-4">
-                  {formData.optionalAccessories.map((accessory, index) => (
+                  {(activeTab === 'tr' ? formData.optionalAccessories : formData.translations.en.optionalAccessories).map((accessory, index) => (
                     <div key={index} className="flex items-center space-x-2">
                       <input
                         type="text"
                         value={accessory}
-                        onChange={(e) => handleOptionalAccessoryChange(index, e.target.value)}
-                        placeholder="Aksesuar adı"
+                        onChange={(e) => {
+                          if (activeTab === 'tr') {
+                            handleOptionalAccessoryChange(index, e.target.value);
+                          } else {
+                            const newAccessories = [...formData.translations.en.optionalAccessories];
+                            newAccessories[index] = e.target.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              translations: {
+                                ...prev.translations,
+                                en: { ...prev.translations.en, optionalAccessories: newAccessories }
+                              }
+                            }));
+                          }
+                        }}
+                        placeholder={activeTab === 'tr' ? "Aksesuar adı" : "Accessory name"}
                         className="flex-grow px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                       <button
                         type="button"
-                        onClick={() => handleOptionalAccessoryRemove(index)}
+                        onClick={() => {
+                          if (activeTab === 'tr') {
+                            handleOptionalAccessoryRemove(index);
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              translations: {
+                                ...prev.translations,
+                                en: {
+                                  ...prev.translations.en,
+                                  optionalAccessories: prev.translations.en.optionalAccessories.filter((_, i) => i !== index)
+                                }
+                              }
+                            }));
+                          }
+                        }}
                         className="flex-shrink-0 text-red-500 hover:text-red-700"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -587,14 +818,14 @@ function AddProductContent() {
             </div>
           </div>
 
-          {/* Kampanya Bilgileri */}
-          {productType === 'campaign' && (
+          {/* Kampanya Bilgileri - Sadece Türkçe tabında göster */}
+          {activeTab === 'tr' && productType === 'campaign' && (
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Kampanya Bilgileri</h2>
+              <h2 className="text-lg font-semibold text-text mb-4">Kampanya Bilgileri</h2>
               <div className="grid grid-cols-1 gap-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-text mb-1">
                       Eski Fiyat (TL)
                     </label>
                     <input
@@ -606,7 +837,7 @@ function AddProductContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-text mb-1">
                       Yeni Fiyat (TL)
                     </label>
                     <input
@@ -620,7 +851,7 @@ function AddProductContent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text mb-1">
                     Kampanya Bitiş Tarihi
                   </label>
                   <input
@@ -647,10 +878,10 @@ function AddProductContent() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Ekleniyor...
+                  {activeTab === 'tr' ? 'Ekleniyor...' : 'Adding...'}
                 </>
               ) : (
-                'Ürünü Ekle'
+                activeTab === 'tr' ? 'Ürünü Ekle' : 'Add Product'
               )}
             </button>
           </div>

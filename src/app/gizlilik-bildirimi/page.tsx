@@ -2,8 +2,17 @@
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useClientTranslation } from '@/lib/i18n';
+import { useEffect, useState } from 'react';
 
 export default function PrivacyNoticePage() {
+  const { locale } = useClientTranslation(['common']);
+  const [isEnglish, setIsEnglish] = useState(false);
+  
+  useEffect(() => {
+    setIsEnglish(locale === 'en');
+  }, [locale]);
+
   return (
     <main>
       <Header />
@@ -20,11 +29,13 @@ export default function PrivacyNoticePage() {
               {/* Left Side - Text */}
               <div className="relative z-10 py-12">
                 <h1 className="text-6xl font-bold text-white mb-4">
-                  Gizlilik Bildirimi
+                  {isEnglish ? 'Privacy Policy' : 'Gizlilik Bildirimi'}
                 </h1>
                 <div className="h-1 w-20 bg-white mb-4"></div>
                 <p className="text-lg text-white/90">
-                  Kişisel verilerinizin korunması ve gizliliğiniz bizim için önemli
+                  {isEnglish 
+                    ? 'The protection of your personal data and your privacy is important to us'
+                    : 'Kişisel verilerinizin korunması ve gizliliğiniz bizim için önemli'}
                 </p>
               </div>
               
@@ -51,30 +62,40 @@ export default function PrivacyNoticePage() {
       {/* Main Content */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto prose prose-lg">
-            <h2>Kişisel Bilgilerin Korunması</h2>
-            <p>
-              Güvenal Makina olarak, web sitemizi ziyaret eden kullanıcılarımızın gizliliğine saygı duyuyor ve kişisel bilgilerinin korunmasına özen gösteriyoruz. Sitemizde, sizin tarafınızdan gönüllü olarak paylaşılan bilgiler dışında herhangi bir kişisel bilgi toplanmamaktadır.
+          <div className="max-w-4xl mx-auto prose prose-lg prose-strong:text-black prose-h2:text-black prose-p:text-black">
+            <h2 className="text-black font-bold">{isEnglish ? 'Protection of Personal Data' : 'Kişisel Bilgilerin Korunması'}</h2>
+            <p className="font-semibold text-black">
+              {isEnglish 
+                ? 'At Güvenal Machinery, we respect the privacy of our website visitors and take care to protect their personal information. No personal information is collected on our site other than information voluntarily shared by you.'
+                : 'Güvenal Makina olarak, web sitemizi ziyaret eden kullanıcılarımızın gizliliğine saygı duyuyor ve kişisel bilgilerinin korunmasına özen gösteriyoruz. Sitemizde, sizin tarafınızdan gönüllü olarak paylaşılan bilgiler dışında herhangi bir kişisel bilgi toplanmamaktadır.'}
             </p>
 
-            <h2>Site İstatistikleri</h2>
-            <p>
-              Web sitemizin kullanımını analiz etmek ve geliştirmek amacıyla istatistiksel veriler toplanmaktadır. Bu veriler, kişisel bilgileriniz kullanılmadan, tamamen anonim olarak işlenmektedir.
+            <h2 className="text-black font-bold">{isEnglish ? 'Site Statistics' : 'Site İstatistikleri'}</h2>
+            <p className="font-semibold text-black">
+              {isEnglish
+                ? 'Statistical data is collected to analyze and improve the use of our website. This data is processed completely anonymously, without using your personal information.'
+                : 'Web sitemizin kullanımını analiz etmek ve geliştirmek amacıyla istatistiksel veriler toplanmaktadır. Bu veriler, kişisel bilgileriniz kullanılmadan, tamamen anonim olarak işlenmektedir.'}
             </p>
 
-            <h2>Çerezler (Cookies)</h2>
-            <p>
-              Sitemiz, kullanıcı deneyimini iyileştirmek ve site fonksiyonlarını geliştirmek amacıyla çerezler kullanmaktadır. Bu çerezler, onayınız olmadan kişisel verilerinizi toplamamakta ve sadece teknik işlevler için kullanılmaktadır.
+            <h2 className="text-black font-bold">{isEnglish ? 'Cookies' : 'Çerezler (Cookies)'}</h2>
+            <p className="font-semibold text-black">
+              {isEnglish
+                ? 'Our site uses cookies to improve user experience and enhance site functionality. These cookies do not collect your personal data without your consent and are only used for technical functions.'
+                : 'Sitemiz, kullanıcı deneyimini iyileştirmek ve site fonksiyonlarını geliştirmek amacıyla çerezler kullanmaktadır. Bu çerezler, onayınız olmadan kişisel verilerinizi toplamamakta ve sadece teknik işlevler için kullanılmaktadır.'}
             </p>
 
-            <h2>Dış Bağlantılar</h2>
-            <p>
-              Web sitemizde yer alan dış bağlantılar (external links) aracılığıyla ulaşacağınız içerikler hakkında sorumluluk kabul etmemekteyiz. Bu sitelerin içerik ve gizlilik uygulamalarından, ilgili siteler sorumludur.
+            <h2 className="text-black font-bold">{isEnglish ? 'External Links' : 'Dış Bağlantılar'}</h2>
+            <p className="font-semibold text-black">
+              {isEnglish
+                ? 'We do not accept responsibility for content you access through external links on our website. The relevant sites are responsible for the content and privacy practices of these sites.'
+                : 'Web sitemizde yer alan dış bağlantılar (external links) aracılığıyla ulaşacağınız içerikler hakkında sorumluluk kabul etmemekteyiz. Bu sitelerin içerik ve gizlilik uygulamalarından, ilgili siteler sorumludur.'}
             </p>
 
             <div className="bg-primary/5 p-6 rounded-xl mt-8">
-              <p className="text-sm text-text-light mb-0">
-                Bu gizlilik bildirimini kabul ederek, web sitemizi kullanmaya devam etmeniz halinde, burada belirtilen şartları kabul etmiş sayılırsınız.
+              <p className="text-sm text-black mb-0 font-semibold">
+                {isEnglish
+                  ? 'By accepting this privacy policy and continuing to use our website, you are deemed to have accepted the terms stated here.'
+                  : 'Bu gizlilik bildirimini kabul ederek, web sitemizi kullanmaya devam etmeniz halinde, burada belirtilen şartları kabul etmiş sayılırsınız.'}
               </p>
             </div>
           </div>

@@ -1,3 +1,5 @@
+'use client';
+
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/HeroSlider';
@@ -7,8 +9,17 @@ import ProductsSection from '@/components/ProductsSection';
 import SecondHandSection from '@/components/SecondHandSection';
 import CareerSection from '@/components/CareerSection';
 import Link from 'next/link';
+import { useClientTranslation } from '@/lib/i18n';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
+  const { locale } = useClientTranslation(['common']);
+  const [isEnglish, setIsEnglish] = useState(false);
+  
+  useEffect(() => {
+    setIsEnglish(locale === 'en');
+  }, [locale]);
+
   return (
     <main>
       <Header />
@@ -43,8 +54,8 @@ export default function Home() {
           <div className="container mx-auto px-4 relative">
             <div className="max-w-7xl mx-auto">
               <div className="grid md:grid-cols-3 gap-8">
-                {/* E-Katalog */}
-                <Link href="/e-katalog" className="group">
+                {/* E-Catalog */}
+                <Link href={isEnglish ? "/e-katalog?lang=en" : "/e-katalog"} className="group">
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all relative overflow-hidden">
                     {/* Background Pattern */}
                     <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -57,12 +68,12 @@ export default function Home() {
                     </div>
 
                     {/* Content */}
-                    <h3 className="text-xl font-bold text-text mb-3 relative">E-Katalog</h3>
-                    <p className="text-text-light relative h-[48px]">Ürün kataloğumuzu inceleyebilir ve indirebilirsiniz.</p>
+                    <h3 className="text-xl font-bold text-text mb-3 relative">E-Catalog</h3>
+                    <p className="text-text-light relative h-[48px]">You can browse and download our product catalog.</p>
 
                     {/* Arrow */}
                     <div className="mt-6 flex items-center gap-2 text-primary-600 font-semibold relative">
-                      <span>İncele</span>
+                      <span>View</span>
                       <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
@@ -70,8 +81,8 @@ export default function Home() {
                   </div>
                 </Link>
 
-                {/* Sertifikalar */}
-                <Link href="/sertifikalar" className="group">
+                {/* Certificates */}
+                <Link href={isEnglish ? "/sertifikalar?lang=en" : "/sertifikalar"} className="group">
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all relative overflow-hidden">
                     {/* Background Pattern */}
                     <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -84,12 +95,12 @@ export default function Home() {
                     </div>
 
                     {/* Content */}
-                    <h3 className="text-xl font-bold text-text mb-3 relative">Sertifikalar</h3>
-                    <p className="text-text-light relative h-[48px]">Kalite ve güvenlik sertifikalarımızı inceleyebilirsiniz.</p>
+                    <h3 className="text-xl font-bold text-text mb-3 relative">Certificates</h3>
+                    <p className="text-text-light relative h-[48px]">You can review our quality and safety certificates.</p>
 
                     {/* Arrow */}
                     <div className="mt-6 flex items-center gap-2 text-primary-600 font-semibold relative">
-                      <span>İncele</span>
+                      <span>View</span>
                       <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
@@ -97,8 +108,8 @@ export default function Home() {
                   </div>
                 </Link>
 
-                {/* Çözüm Ortakları */}
-                <Link href="/cozum-ortaklari" className="group">
+                {/* Solution Partners */}
+                <Link href={isEnglish ? "/solution-partners?lang=en" : "/solution-partners"} className="group">
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all relative overflow-hidden">
                     {/* Background Pattern */}
                     <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -111,12 +122,12 @@ export default function Home() {
                     </div>
 
                     {/* Content */}
-                    <h3 className="text-xl font-bold text-text mb-3 relative">Çözüm Ortakları</h3>
-                    <p className="text-text-light relative h-[48px]">İş ortaklarımız ve çözüm ortaklarımızı görüntüleyin.</p>
+                    <h3 className="text-xl font-bold text-text mb-3 relative">Solution Partners</h3>
+                    <p className="text-text-light relative h-[48px]">View our business and solution partners.</p>
 
                     {/* Arrow */}
                     <div className="mt-6 flex items-center gap-2 text-primary-600 font-semibold relative">
-                      <span>İncele</span>
+                      <span>View</span>
                       <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
@@ -159,18 +170,18 @@ export default function Home() {
                 {/* Left Side */}
                 <div className="text-white space-y-8">
                   <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-                    Projeniz için En İyi <br />
-                    <span className="text-primary-200">Makina Çözümleri</span>
+                    The Best Machinery Solutions <br />
+                    <span className="text-primary-200">For Your Project</span>
                   </h2>
                   <p className="text-white/80 text-lg max-w-xl">
-                    40 yılı aşkın tecrübemizle endüstriyel makina ihtiyaçlarınız için yanınızdayız. Uzman ekibimizle size özel çözümler sunuyoruz.
+                    With over 40 years of experience, we are at your service for your industrial machinery needs. We offer customized solutions with our expert team.
                   </p>
                   <div className="flex flex-wrap gap-4">
                     <Link 
-                      href="/iletisim" 
+                      href={isEnglish ? "/iletisim?lang=en" : "/iletisim"}
                       className="inline-flex items-center gap-2 bg-white text-primary-900 px-8 py-4 rounded-xl font-medium hover:bg-primary-50 transition-colors"
                     >
-                      Bizimle İletişime Geçin
+                      Contact Us
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>

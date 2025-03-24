@@ -175,8 +175,20 @@ export async function POST(request: NextRequest) {
       images: images,
       specs: data.specifications.filter((spec: { label: string; value: string }) => spec.label && spec.value),
       standardAccessories: data.standardAccessories || [],
-      optionalAccessories: data.optionalAccessories || []
+      optionalAccessories: data.optionalAccessories || [],
+      translations: {
+        en: data.translations?.en ? {
+          name: data.translations.en.name.trim(),
+          description: data.translations.en.description.trim(),
+          specs: data.translations.en.specifications.filter((spec: { label: string; value: string }) => spec.label && spec.value),
+          standardAccessories: data.translations.en.standardAccessories || [],
+          optionalAccessories: data.translations.en.optionalAccessories || []
+        } : undefined
+      }
     };
+
+    console.log('Eklenen ürün kategorisi:', data.category.trim());
+    console.log('Eklenen ürün tipi:', type);
 
     // Mevcut ürünleri yükle ve yeni ürünü ekle
     const products = await loadProducts();
@@ -227,6 +239,9 @@ export async function PUT(request: NextRequest) {
     const existingImagesJson = formData.get('existingImages') as string;
     const existingImages = existingImagesJson ? JSON.parse(existingImagesJson) : [];
     
+    console.log('Güncellenen ürün kategorisi:', data.category);
+    console.log('Güncellenen ürün tipi:', data.type);
+    
     // Yeni yüklenen resimleri işle
     const newImagePaths: string[] = [];
     let i = 0;
@@ -253,28 +268,29 @@ export async function PUT(request: NextRequest) {
       i++;
     }
     
-    // Tüm resim yollarını birleştir
-    const allImages = [...existingImages, ...newImagePaths];
-    
     // Ürünü güncelle
     const updatedProduct = {
       ...products[productIndex],
-      name: data.name,
-      description: data.description,
+      name: data.name.trim(),
+      description: data.description.trim(),
       category: data.category,
-      type: data.type,
       price: data.price || undefined,
+      images: [...existingImages, ...newImagePaths],
       oldPrice: data.oldPrice || undefined,
       campaign: data.campaign || undefined,
-      images: allImages,
-      image: allImages[0] || products[productIndex].image,
-      specs: data.specs.map((spec: { label: string; value: string }) => ({
-        label: spec.label || '',
-        value: spec.value || ''
-      })),
-      standardAccessories: data.standardAccessories,
-      optionalAccessories: data.optionalAccessories,
-      updatedAt: new Date().toISOString()
+      image: existingImages[0] || newImagePaths[0] || products[productIndex].image,
+      specs: data.specifications.filter((spec: { label: string; value: string }) => spec.label && spec.value),
+      standardAccessories: data.standardAccessories || [],
+      optionalAccessories: data.optionalAccessories || [],
+      translations: {
+        en: data.translations?.en ? {
+          name: data.translations.en.name.trim(),
+          description: data.translations.en.description.trim(),
+          specs: data.translations.en.specifications.filter((spec: { label: string; value: string }) => spec.label && spec.value),
+          standardAccessories: data.translations.en.standardAccessories || [],
+          optionalAccessories: data.translations.en.optionalAccessories || []
+        } : undefined
+      }
     };
     
     console.log('Güncellenecek ürün:', updatedProduct);

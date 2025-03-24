@@ -3,8 +3,18 @@
 import useEmblaCarousel from 'embla-carousel-react';
 // import Autoplay from 'embla-carousel-autoplay';
 import Image from 'next/image';
+import { useClientTranslation } from '@/lib/i18n';
+import { useState, useEffect } from 'react';
 
 export default function BrandSection() {
+  const { t, initialized } = useClientTranslation(['common']);
+  const [mounted, setMounted] = useState(false);
+  
+  // Client tarafında olduğumuzu kontrol et
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
   const [emblaRef] = useEmblaCarousel(
     {
       align: 'center',
@@ -15,6 +25,22 @@ export default function BrandSection() {
       containScroll: 'trimSnaps'
     }
   );
+
+  // Client tarafında ve çeviriler yüklenmediyse yükleme durumunu göster
+  if (!mounted || !initialized) {
+    return (
+      <section className="py-24 bg-white relative overflow-hidden">
+        <div className="container mx-auto px-4 relative">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="h-8 w-40 bg-gray-200 animate-pulse mx-auto rounded"></div>
+              <div className="h-1 w-20 bg-primary mx-auto mt-4"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-24 bg-white relative overflow-hidden">
@@ -43,7 +69,7 @@ export default function BrandSection() {
           {/* Section Header */}
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-text mb-4">
-              Markalarımız
+              {t('brandSlider.ourBrands', 'Markalarımız')}
             </h2>
             <div className="h-1 w-20 bg-primary mx-auto"></div>
           </div>

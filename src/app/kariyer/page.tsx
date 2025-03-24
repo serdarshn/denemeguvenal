@@ -2,8 +2,9 @@
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
+import { useClientTranslation } from '@/lib/i18n';
 
 // Captcha kodu üretme fonksiyonu
 function generateCaptchaCode() {
@@ -15,60 +16,8 @@ function generateCaptchaCode() {
   return code;
 }
 
-// Captcha canvas'ını çizme fonksiyonu
-function drawCaptcha(canvas: HTMLCanvasElement, code: string) {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  // Canvas'ı temizle
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Arkaplan
-  ctx.fillStyle = '#f3f4f6';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Karıştırıcı çizgiler
-  for (let i = 0; i < 10; i++) {
-    ctx.beginPath();
-    ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
-    ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
-    ctx.strokeStyle = `rgba(37, 99, 235, ${Math.random() * 0.2 + 0.1})`;
-    ctx.stroke();
-  }
-
-  // Metni çiz
-  ctx.font = 'bold 24px Arial';
-  ctx.fillStyle = '#2563eb';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  
-  // Her karakteri ayrı ayrı çiz ve hafifçe döndür
-  for (let i = 0; i < code.length; i++) {
-    const x = (canvas.width / code.length) * (i + 0.5);
-    const y = canvas.height / 2;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate((Math.random() - 0.5) * 0.4);
-    ctx.fillText(code[i], 0, 0);
-    ctx.restore();
-  }
-
-  // Noktalar ekle
-  for (let i = 0; i < 50; i++) {
-    ctx.beginPath();
-    ctx.arc(
-      Math.random() * canvas.width,
-      Math.random() * canvas.height,
-      1,
-      0,
-      Math.PI * 2
-    );
-    ctx.fillStyle = `rgba(37, 99, 235, ${Math.random() * 0.2 + 0.1})`;
-    ctx.fill();
-  }
-}
-
 export default function CareerPage() {
+  const { locale, initialized } = useClientTranslation(['common']);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -84,6 +33,43 @@ export default function CareerPage() {
   const [captchaCode, setCaptchaCode] = useState(() => generateCaptchaCode());
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Captcha canvas'ını çizme fonksiyonu
+  const drawCaptcha = useCallback((canvas: HTMLCanvasElement, code: string) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Canvas'ı temizle
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Arkaplan
+    ctx.fillStyle = '#f3f4f6';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Karıştırıcı çizgiler
+    for (let i = 0; i < 10; i++) {
+      ctx.beginPath();
+      ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+      ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+      ctx.strokeStyle = `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.5)`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // Captcha kodunu çiz
+    ctx.font = 'bold 40px Arial';
+    ctx.fillStyle = '#1f2937';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(code, canvas.width / 2, canvas.height / 2);
+  }, []);
+
+  // useEffect ile DOM yüklendikten sonra çiz
+  useEffect(() => {
+    if (canvasRef.current) {
+      drawCaptcha(canvasRef.current, captchaCode);
+    }
+  }, [captchaCode, drawCaptcha]);
+
   // Captcha'yı yenile
   const refreshCaptcha = () => {
     const newCode = generateCaptchaCode();
@@ -93,19 +79,12 @@ export default function CareerPage() {
     }
   };
 
-  // İlk yükleme ve yenileme durumlarında captcha'yı oluştur
-  useEffect(() => {
-    if (canvasRef.current) {
-      drawCaptcha(canvasRef.current, captchaCode);
-    }
-  }, [captchaCode]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Captcha kontrolü
     if (formData.captcha.toLowerCase() !== captchaCode.toLowerCase()) {
-      toast.error('Güvenlik kodu hatalı. Lütfen tekrar deneyin.');
+      toast.error(locale === 'en' ? 'Security code is incorrect. Please try again.' : 'Güvenlik kodu hatalı. Lütfen tekrar deneyin.');
       refreshCaptcha();
       setFormData(prev => ({ ...prev, captcha: '' }));
       return;
@@ -130,7 +109,7 @@ export default function CareerPage() {
 
       if (result.success) {
         setSubmitSuccess(true);
-        toast.success('Başvurunuz başarıyla gönderildi.');
+        toast.success(locale === 'en' ? 'Your application has been successfully submitted.' : 'Başvurunuz başarıyla gönderildi.');
         // Formu temizle
         setFormData({
           name: '',
@@ -146,12 +125,14 @@ export default function CareerPage() {
         throw new Error(result.message);
       }
     } catch (error) {
-      toast.error('Başvuru gönderilirken bir hata oluştu. Lütfen tekrar deneyin.');
+      toast.error(locale === 'en' ? 'An error occurred while sending your application. Please try again.' : 'Başvuru gönderilirken bir hata oluştu. Lütfen tekrar deneyin.');
       console.error('Form gönderme hatası:', error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!initialized) return null;
 
   return (
     <main>
@@ -160,20 +141,22 @@ export default function CareerPage() {
       {/* Banner Section */}
       <section className="pt-[104px] relative bg-background-dark overflow-hidden">
         {/* Diagonal Background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-900 transform -skew-y-6 origin-top-left scale-110"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-900 transform -skew-y-6 origin-top-left scale-110 z-0"></div>
         
         {/* Content */}
-        <div className="container mx-auto px-4 relative">
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-8 items-center min-h-[200px]">
               {/* Left Side - Text */}
               <div className="relative z-10 py-12">
                 <h1 className="text-6xl font-bold text-white mb-4">
-                  Kariyer
+                  {locale === 'en' ? 'Career' : 'Kariyer'}
                 </h1>
                 <div className="h-1 w-20 bg-white mb-4"></div>
                 <p className="text-lg text-white/90">
-                  Güvenal Makina ailesine katılın, geleceği birlikte inşa edelim
+                  {locale === 'en' 
+                    ? 'Join the Güvenal Machinery family, let\'s build the future together'
+                    : 'Güvenal Makina ailesine katılın, geleceği birlikte inşa edelim'}
                 </p>
               </div>
               
@@ -192,15 +175,15 @@ export default function CareerPage() {
         </div>
 
         {/* Floating Elements */}
-        <div className="absolute top-16 left-8 w-3 h-3 bg-white/20 rounded-full"></div>
-        <div className="absolute bottom-16 right-16 w-4 h-4 bg-white/20 rounded-full"></div>
-        <div className="absolute top-32 right-32 w-2 h-2 bg-white/20 rounded-full"></div>
+        <div className="absolute top-16 left-8 w-3 h-3 bg-white/20 rounded-full z-0"></div>
+        <div className="absolute bottom-16 right-16 w-4 h-4 bg-white/20 rounded-full z-0"></div>
+        <div className="absolute top-32 right-32 w-2 h-2 bg-white/20 rounded-full z-0"></div>
       </section>
 
       {/* İK Politikası Section */}
       <section className="py-16 bg-background relative overflow-hidden">
         {/* Background Elements */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 to-transparent"></div>
           <div className="absolute inset-0 opacity-30">
             <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -215,31 +198,39 @@ export default function CareerPage() {
         </div>
 
         {/* Floating Elements */}
-        <div className="absolute top-12 left-8 w-3 h-3 bg-primary-500/20 rounded-full"></div>
-        <div className="absolute bottom-24 right-16 w-4 h-4 bg-primary-500/20 rounded-full"></div>
-        <div className="absolute top-1/2 right-32 w-2 h-2 bg-primary-500/20 rounded-full"></div>
+        <div className="absolute top-12 left-8 w-3 h-3 bg-primary-500/20 rounded-full z-0"></div>
+        <div className="absolute bottom-24 right-16 w-4 h-4 bg-primary-500/20 rounded-full z-0"></div>
+        <div className="absolute top-1/2 right-32 w-2 h-2 bg-primary-500/20 rounded-full z-0"></div>
 
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-7xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-start">
               {/* Sol Taraf - İK Politikası */}
-              <div className="space-y-8">
+              <div className="space-y-8 relative z-10">
                 <div>
-                  <h2 className="text-3xl font-bold text-text mb-6">İnsan Kaynakları Politikası</h2>
+                  <h2 className="text-3xl font-bold text-text mb-6">
+                    {locale === 'en' ? 'Human Resources Policy' : 'İnsan Kaynakları Politikası'}
+                  </h2>
                   <p className="text-text-light leading-relaxed">
-                    İnsan Kaynakları&apos;nın misyonu bireylerin, ekiplerin ve organizasyonların katkısını ve gelişimini artıracak ve diğer yandan Güvenal Makina&apos;nın çalışanlarının hoşnut olacakları ve şirketleriyle gurur duyacakları bir ortamın geliştirilmesi ve korunmasıdır.
+                    {locale === 'en' 
+                      ? 'The mission of Human Resources is to increase the contribution and development of individuals, teams, and organizations, and to develop and maintain an environment where Güvenal Machinery employees will be satisfied and proud of their company.'
+                      : 'İnsan Kaynakları\'nın misyonu bireylerin, ekiplerin ve organizasyonların katkısını ve gelişimini artıracak ve diğer yandan Güvenal Makina\'nın çalışanlarının hoşnut olacakları ve şirketleriyle gurur duyacakları bir ortamın geliştirilmesi ve korunmasıdır.'}
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-semibold text-text mb-4">Güvenal Makina&apos;nın İnsan Kaynakları İlkeleri</h3>
+                  <h3 className="text-xl font-semibold text-text mb-4">
+                    {locale === 'en' ? 'Güvenal Machinery\'s Human Resources Principles' : 'Güvenal Makina\'nın İnsan Kaynakları İlkeleri'}
+                  </h3>
                   <div className="space-y-6">
                     <div className="flex gap-4">
                       <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                         <span className="text-primary font-semibold">1</span>
                       </div>
                       <p className="text-text-light">
-                        Bireylerin onuruna ve değerine saygı gösterilmelidir. Bunun için objektif, işbirliği ve ekip çalışma ortamında çalışanların en yüksek performans düzeylerini teşvik etmelidir.
+                        {locale === 'en' 
+                          ? 'Respect for the dignity and value of individuals. This should encourage the highest levels of performance from employees in an objective, cooperative, and team-working environment.'
+                          : 'Bireylerin onuruna ve değerine saygı gösterilmelidir. Bunun için objektif, işbirliği ve ekip çalışma ortamında çalışanların en yüksek performans düzeylerini teşvik etmelidir.'}
                       </p>
                     </div>
                     <div className="flex gap-4">
@@ -247,7 +238,9 @@ export default function CareerPage() {
                         <span className="text-primary font-semibold">2</span>
                       </div>
                       <p className="text-text-light">
-                        Her bir çalışanın inisiyatif almasını teşvik etmek. Bunu yaratıcı çalışmalar ortaya konması için hem yön çizerek hem de özgürlük vererek yapmak.
+                        {locale === 'en' 
+                          ? 'Encourage each employee to take initiative. Do this by both setting direction and giving freedom for creative work to emerge.'
+                          : 'Her bir çalışanın inisiyatif almasını teşvik etmek. Bunu yaratıcı çalışmalar ortaya konması için hem yön çizerek hem de özgürlük vererek yapmak.'}
                       </p>
                     </div>
                     <div className="flex gap-4">
@@ -255,7 +248,9 @@ export default function CareerPage() {
                         <span className="text-primary font-semibold">3</span>
                       </div>
                       <p className="text-text-light">
-                        Bireysel yeteneklerin geliştirilmesini teşvik etmek. Bunu sağlıklı yerleştirme, yönlendirme ve geliştirme çalışmaları ile yapmak.
+                        {locale === 'en' 
+                          ? 'Encourage the development of individual talents. Do this through healthy placement, guidance, and development activities.'
+                          : 'Bireysel yeteneklerin geliştirilmesini teşvik etmek. Bunu sağlıklı yerleştirme, yönlendirme ve geliştirme çalışmaları ile yapmak.'}
                       </p>
                     </div>
                     <div className="flex gap-4">
@@ -263,7 +258,9 @@ export default function CareerPage() {
                         <span className="text-primary font-semibold">4</span>
                       </div>
                       <p className="text-text-light">
-                        Çalışanların kendilerini geliştirmeleri için eşit fırsat vermek ve iyi performansı objektif bir şekilde ödüllendirmek.
+                        {locale === 'en' 
+                          ? 'Provide equal opportunity for employees to develop themselves and objectively reward good performance.'
+                          : 'Çalışanların kendilerini geliştirmeleri için eşit fırsat vermek ve iyi performansı objektif bir şekilde ödüllendirmek.'}
                       </p>
                     </div>
                   </div>
@@ -271,20 +268,26 @@ export default function CareerPage() {
               </div>
 
               {/* Sağ Taraf - Başvuru Formu */}
-              <div>
+              <div className="relative z-10">
                 <div className="bg-white rounded-2xl shadow-sm p-8">
-                  <h3 className="text-2xl font-bold text-text mb-6">Başvuru Formu</h3>
+                  <h3 className="text-2xl font-bold text-text mb-6">
+                    {locale === 'en' ? 'Application Form' : 'Başvuru Formu'}
+                  </h3>
                   <p className="text-gray-600 mb-8">
-                    Güvenal Makina&apos;da kariyer fırsatları ve açık pozisyonlar hakkında bilgi alın. Ekibimize katılmak için başvurunuzu yapın.
+                    {locale === 'en' 
+                      ? 'Get information about career opportunities and open positions at Güvenal Machinery. Submit your application to join our team.'
+                      : 'Güvenal Makina\'da kariyer fırsatları ve açık pozisyonlar hakkında bilgi alın. Ekibimize katılmak için başvurunuzu yapın.'}
                   </p>
                   <p className="text-gray-600 mb-8">
-                    Güvenal Makina&apos;nın başarısı, çalışanlarının başarısıdır.
+                    {locale === 'en' 
+                      ? 'The success of Güvenal Machinery is the success of its employees.'
+                      : 'Güvenal Makina\'nın başarısı, çalışanlarının başarısıdır.'}
                   </p>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-text mb-2">
-                        Ad, Soyad
+                        {locale === 'en' ? 'Full Name' : 'Ad, Soyad'}
                       </label>
                       <input
                         type="text"
@@ -299,7 +302,7 @@ export default function CareerPage() {
 
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-text mb-2">
-                        E-Posta
+                        {locale === 'en' ? 'Email' : 'E-Posta'}
                       </label>
                       <input
                         type="email"
@@ -314,7 +317,7 @@ export default function CareerPage() {
 
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-text mb-2">
-                        Telefon
+                        {locale === 'en' ? 'Phone' : 'Telefon'}
                       </label>
                       <input
                         type="tel"
@@ -325,13 +328,13 @@ export default function CareerPage() {
                         required
                         disabled={isLoading}
                         pattern="[0-9]{10,11}"
-                        title="Lütfen geçerli bir telefon numarası girin"
+                        title={locale === 'en' ? 'Please enter a valid phone number' : 'Lütfen geçerli bir telefon numarası girin'}
                       />
                     </div>
 
                     <div>
                       <label htmlFor="position" className="block text-sm font-medium text-text mb-2">
-                        Pozisyon
+                        {locale === 'en' ? 'Position' : 'Pozisyon'}
                       </label>
                       <input
                         type="text"
@@ -346,7 +349,7 @@ export default function CareerPage() {
 
                     <div>
                       <label htmlFor="cv" className="block text-sm font-medium text-text mb-2">
-                        CV Yükle
+                        {locale === 'en' ? 'Upload CV' : 'CV Yükle'}
                       </label>
                       <input
                         type="file"
@@ -358,13 +361,15 @@ export default function CareerPage() {
                         disabled={isLoading}
                       />
                       <p className="mt-1 text-sm text-text-light">
-                        Maksimum dosya boyutu: 5MB. Kabul edilen formatlar: PDF, DOC, DOCX
+                        {locale === 'en' 
+                          ? 'Maximum file size: 5MB. Accepted formats: PDF, DOC, DOCX'
+                          : 'Maksimum dosya boyutu: 5MB. Kabul edilen formatlar: PDF, DOC, DOCX'}
                       </p>
                     </div>
 
                     <div>
                       <label htmlFor="note" className="block text-sm font-medium text-text mb-2">
-                        Notunuz
+                        {locale === 'en' ? 'Your Note' : 'Notunuz'}
                       </label>
                       <textarea
                         id="note"
@@ -378,7 +383,7 @@ export default function CareerPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-text mb-1">
-                        Kodu girin
+                        {locale === 'en' ? 'Enter Code' : 'Kodu girin'}
                       </label>
                       <div className="space-y-4">
                         <div>
@@ -393,7 +398,7 @@ export default function CareerPage() {
                             onClick={refreshCaptcha}
                             className="mt-1 text-xs text-primary hover:text-primary-600 transition-colors"
                           >
-                            Yeni Kod
+                            {locale === 'en' ? 'New Code' : 'Yeni Kod'}
                           </button>
                         </div>
                         <input
@@ -411,13 +416,13 @@ export default function CareerPage() {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className={`w-full bg-primary hover:bg-primary-600 text-white font-medium py-3 rounded-lg transition-colors relative ${
+                      className={`w-full bg-primary hover:bg-primary-600 text-white font-medium py-3 rounded-lg transition-colors relative z-20 ${
                         isLoading ? 'opacity-70 cursor-not-allowed' : ''
                       }`}
                     >
                       {isLoading ? (
                         <>
-                          <span className="opacity-0">Başvuru Yap</span>
+                          <span className="opacity-0">{locale === 'en' ? 'Apply Now' : 'Başvuru Yap'}</span>
                           <div className="absolute inset-0 flex items-center justify-center">
                             <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -426,13 +431,15 @@ export default function CareerPage() {
                           </div>
                         </>
                       ) : (
-                        'Başvuru Yap'
+                        locale === 'en' ? 'Apply Now' : 'Başvuru Yap'
                       )}
                     </button>
 
                     {submitSuccess && (
-                      <div className="mt-4 p-4 bg-green-50 text-green-700 rounded-lg">
-                        Başvurunuz başarıyla gönderildi. En kısa sürede sizinle iletişime geçeceğiz.
+                      <div className="mt-4 p-4 bg-green-50 text-green-700 rounded-lg relative z-20">
+                        {locale === 'en' 
+                          ? 'Your application has been successfully submitted. We will contact you as soon as possible.'
+                          : 'Başvurunuz başarıyla gönderildi. En kısa sürede sizinle iletişime geçeceğiz.'}
                       </div>
                     )}
                   </form>

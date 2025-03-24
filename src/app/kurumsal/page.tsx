@@ -6,11 +6,14 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+import { useClientTranslation } from '@/lib/i18n';
+import Link from 'next/link';
 
 export default function CorporatePage() {
   const [activeTab, setActiveTab] = useState('brands');
   const [selectedImage, setSelectedImage] = useState('');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const { locale, initialized } = useClientTranslation(['common']);
   const [, emblaApi] = useEmblaCarousel(
     {
       loop: true,
@@ -41,6 +44,8 @@ export default function CorporatePage() {
     }
   }, [emblaApi]);
 
+  if (!initialized) return null;
+
   return (
     <main>
       <Header />
@@ -57,11 +62,13 @@ export default function CorporatePage() {
               {/* Left Side - Text */}
               <div className="relative z-10 py-12">
                 <h1 className="text-6xl font-bold text-white mb-4">
-                  Kurumsal
+                  {locale === 'en' ? 'Corporate' : 'Kurumsal'}
                 </h1>
                 <div className="h-1 w-20 bg-white mb-4"></div>
                 <p className="text-lg text-white/90">
-                  1983&apos;ten beri endüstriyel makina sektöründe öncü çözümler
+                  {locale === 'en' 
+                    ? 'Pioneering solutions in the industrial machinery sector since 1983'
+                    : '1983\'ten beri endüstriyel makina sektöründe öncü çözümler'}
                 </p>
               </div>
               
@@ -85,7 +92,7 @@ export default function CorporatePage() {
         <div className="absolute top-32 right-32 w-2 h-2 bg-white/20 rounded-full"></div>
       </section>
 
-      {/* Hakkımızda Section */}
+      {/* About Us Section */}
       <section className="py-24 bg-background relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0">
@@ -109,26 +116,30 @@ export default function CorporatePage() {
 
         <div className="container mx-auto px-4 relative">
           <div className="max-w-7xl mx-auto">
-            {/* Başlık */}
+            {/* Title */}
             <div className="text-center mb-16">
               <div className="inline-block bg-primary/10 px-4 py-2 rounded-full text-primary text-sm font-medium mb-6">
-                Hakkımızda
+                {locale === 'en' ? 'About Us' : 'Hakkımızda'}
               </div>
               <h2 className="text-4xl lg:text-5xl font-bold text-text mb-6">
-                Güvenal Makina <br />
-                <span className="text-primary">Güvenal Group&apos;un Güçlü Markası</span>
+                {locale === 'en' ? 'Güvenal Machinery' : 'Güvenal Makina'} <br />
+                <span className="text-primary">
+                  {locale === 'en' 
+                    ? 'The Strong Brand of Güvenal Group' 
+                    : 'Güvenal Group\'un Güçlü Markası'}
+                </span>
               </h2>
               <div className="h-1 w-20 bg-primary mx-auto"></div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-              {/* Sol taraf - Fotoğraf ve İstatistikler */}
+              {/* Left side - Photo and Statistics */}
               <div className="lg:col-span-5 space-y-8">
                 <div className="relative">
                   <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
                     <Image
                       src="/images/Hakkimizda/hakkimizdafoto2.jpg"
-                      alt="Güvenal Makina Üretim"
+                      alt={locale === 'en' ? 'Güvenal Machinery Production' : 'Güvenal Makina Üretim'}
                       fill
                       className="object-contain rounded-2xl"
                     />
@@ -138,12 +149,16 @@ export default function CorporatePage() {
                   {/* Floating Stats */}
                   <div className="absolute -bottom-4 -right-4 bg-white p-6 rounded-xl shadow-xl">
                     <div className="text-3xl font-bold text-primary">40+</div>
-                    <div className="text-sm text-text-light">Yıllık Deneyim</div>
+                    <div className="text-sm text-text-light">
+                      {locale === 'en' ? 'Years of Experience' : 'Yıllık Deneyim'}
+                    </div>
                   </div>
                   
                   <div className="absolute -top-4 -left-4 bg-white p-6 rounded-xl shadow-xl">
                     <div className="text-3xl font-bold text-primary">150+</div>
-                    <div className="text-sm text-text-light">Uzman Personel</div>
+                    <div className="text-sm text-text-light">
+                      {locale === 'en' ? 'Expert Staff' : 'Uzman Personel'}
+                    </div>
                   </div>
                 </div>
 
@@ -156,7 +171,9 @@ export default function CorporatePage() {
                       </svg>
                     </div>
                     <div className="text-2xl font-bold text-primary">22</div>
-                    <div className="text-sm text-text-light">Yıllık CNC Deneyimi</div>
+                    <div className="text-sm text-text-light">
+                      {locale === 'en' ? 'Years of CNC Experience' : 'Yıllık CNC Deneyimi'}
+                    </div>
                   </div>
 
                   <div className="bg-white rounded-xl p-6 shadow-soft border border-primary/10 transform hover:-translate-y-1 transition-all duration-300">
@@ -165,35 +182,35 @@ export default function CorporatePage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <div className="text-lg font-bold text-primary">7/24</div>
-                    <div className="text-sm text-text-light">Teknik Destek</div>
+                    <div className="text-lg font-bold text-primary">{locale === 'en' ? '24/7' : '7/24'}</div>
+                    <div className="text-sm text-text-light">
+                      {locale === 'en' ? 'Technical Support' : 'Teknik Destek'}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Sağ taraf - İçerik */}
+              {/* Right side - Content */}
               <div className="lg:col-span-7 space-y-8">
                 <div className="prose prose-lg">
                   <div className="space-y-8">
                     <div className="bg-white rounded-2xl p-8 shadow-soft border border-primary/10">
                       <p className="text-xl font-medium text-text leading-relaxed mb-6">
-                        Güvenal Makina, Güvenal Group bünyesinde faaliyet gösteren ve takım
-                        tezgahları sektöründe öncü çözümler sunan bir markadır. 40 yılı aşkın
-                        deneyimimiz ve 150 kişilik uzman ekibimizle, sanayi üretimine yüksek kalite,
-                        yenilikçi teknoloji ve verimli çözümler sunuyoruz.
+                        {locale === 'en' 
+                          ? 'Güvenal Machinery is a brand operating under Güvenal Group that provides pioneering solutions in the machine tools sector. With our experience of more than 40 years and our expert team of 150 people, we offer high quality, innovative technology and efficient solutions to industrial production.'
+                          : 'Güvenal Makina, Güvenal Group bünyesinde faaliyet gösteren ve takım tezgahları sektöründe öncü çözümler sunan bir markadır. 40 yılı aşkın deneyimimiz ve 150 kişilik uzman ekibimizle, sanayi üretimine yüksek kalite, yenilikçi teknoloji ve verimli çözümler sunuyoruz.'}
                       </p>
                       
                       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/10 to-transparent my-6"></div>
                       
                       <p className="text-text-light">
-                        22 yıldır üniversal takım tezgahları ve CNC makinaları satışıyla
-                        müşterilerimizin üretim gücünü artırıyoruz. Müşterilerimize yalnızca satış
-                        sürecinde değil, 7/24 teknik servis desteği ve orijinal yedek parça temini ile de
-                        kesintisiz hizmet sunuyoruz.
+                        {locale === 'en'
+                          ? "For 22 years, we have been increasing our customers' production power by selling universal machine tools and CNC machines. We provide uninterrupted service to our customers not only during the sales process, but also with 24/7 technical service support and original spare parts supply."
+                          : '22 yıldır üniversal takım tezgahları ve CNC makinaları satışıyla müşterilerimizin üretim gücünü artırıyoruz. Müşterilerimize yalnızca satış sürecinde değil, 7/24 teknik servis desteği ve orijinal yedek parça tedariki ile de kesintisiz hizmet sunuyoruz.'}
                       </p>
                     </div>
 
-                    {/* Öne Çıkan Özellikler */}
+                    {/* Featured Characteristics */}
                     <div className="grid grid-cols-1 gap-6">
                       <div className="bg-white rounded-xl p-6 shadow-soft border border-primary/10 transform hover:-translate-y-1 transition-all duration-300">
                         <div className="flex items-start gap-4">
@@ -203,9 +220,13 @@ export default function CorporatePage() {
                             </svg>
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-text mb-2">150 Kişilik Uzman Kadro</h3>
+                            <h3 className="text-lg font-semibold text-text mb-2">
+                              {locale === 'en' ? 'Expert Team of 150 People' : '150 Kişilik Uzman Kadro'}
+                            </h3>
                             <p className="text-text-light">
-                              Güçlü üretim kapasitesi ve deneyimli ekibimizle her zaman yanınızdayız
+                              {locale === 'en' 
+                                ? 'We are always at your side with our strong production capacity and experienced team'
+                                : 'Güçlü üretim kapasitesi ve deneyimli ekibimizle her zaman yanınızdayız'}
                             </p>
                           </div>
                         </div>
@@ -219,9 +240,13 @@ export default function CorporatePage() {
                             </svg>
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-text mb-2">Kesintisiz Teknik Destek</h3>
+                            <h3 className="text-lg font-semibold text-text mb-2">
+                              {locale === 'en' ? 'Continuous Technical Support' : 'Kesintisiz Teknik Destek'}
+                            </h3>
                             <p className="text-text-light">
-                              7/24 teknik servis desteği ve orijinal yedek parça tedariki ile yanınızdayız
+                              {locale === 'en'
+                                ? 'We are by your side with 24/7 technical service support and original spare parts supply'
+                                : '7/24 teknik servis desteği ve orijinal yedek parça tedariki ile yanınızdayız'}
                             </p>
                           </div>
                         </div>
@@ -231,14 +256,19 @@ export default function CorporatePage() {
                     {/* Call to Action */}
                     <div className="bg-primary/5 rounded-2xl p-8 border border-primary/10">
                       <p className="text-xl font-semibold text-primary mb-4">
-                        Güvenal Makina ile üretiminize güç katın, geleceğe güvenle ilerleyin!
+                        {locale === 'en'
+                          ? 'Power up your production with Güvenal Machinery, move forward to the future with confidence!'
+                          : 'Güvenal Makina ile üretiminize güç katın, geleceğe güvenle ilerleyin!'}
                       </p>
-                      <a href="/iletisim" className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl hover:bg-primary-600 transition-colors">
-                        Bizimle İletişime Geçin
+                      <Link 
+                        href={locale === 'en' ? "/iletisim?lang=en" : "/iletisim"} 
+                        className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl hover:bg-primary-600 transition-colors"
+                      >
+                        {locale === 'en' ? 'Contact Us' : 'Bizimle İletişime Geçin'}
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -248,7 +278,7 @@ export default function CorporatePage() {
         </div>
       </section>
 
-      {/* Vizyon & Misyon Section */}
+      {/* Vision & Mission Section */}
       <section className="py-24 bg-background relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0">
@@ -272,21 +302,21 @@ export default function CorporatePage() {
 
         <div className="container mx-auto px-4 relative">
           <div className="max-w-7xl mx-auto">
-            {/* Başlık */}
+            {/* Title */}
             <div className="text-center mb-16">
               <div className="inline-block bg-primary/10 px-4 py-2 rounded-full text-primary text-sm font-medium mb-6">
-                Vizyon & Misyon
+                {locale === 'en' ? 'Vision & Mission' : 'Vizyon & Misyon'}
               </div>
               <h2 className="text-4xl font-bold text-text mb-6">
-                Geleceğe Yön Veren Hedefler
+                {locale === 'en' ? 'Goals That Shape the Future' : 'Geleceğe Yön Veren Hedefler'}
               </h2>
               <div className="h-1 w-20 bg-primary mx-auto"></div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-              {/* Vizyon */}
+              {/* Vision */}
               <div className="bg-white p-10 rounded-2xl shadow-soft border border-gray-100 relative">
-                {/* Dekoratif İkon */}
+                {/* Decorative Icon */}
                 <div className="absolute -top-8 left-10">
                   <div className="w-16 h-16 bg-primary text-white rounded-2xl shadow-lg flex items-center justify-center transform -rotate-6">
                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -297,16 +327,20 @@ export default function CorporatePage() {
                 </div>
 
                 <div className="pt-6">
-                  <h3 className="text-2xl font-bold text-text mb-6">Vizyonumuz</h3>
+                  <h3 className="text-2xl font-bold text-text mb-6">
+                    {locale === 'en' ? 'Our Vision' : 'Vizyonumuz'}
+                  </h3>
                   <p className="text-text-light text-lg leading-relaxed">
-                    Sunduğumuz ürün kalitesi, hizmet ve katma değer ile sektörümüzün öncü firması haline gelmek.
+                    {locale === 'en' 
+                      ? 'To become the leading company in our sector with the product quality, service, and added value we provide.'
+                      : 'Sunduğumuz ürün kalitesi, hizmet ve katma değer ile sektörümüzün öncü firması haline gelmek.'}
                   </p>
                 </div>
               </div>
 
-              {/* Misyon */}
+              {/* Mission */}
               <div className="bg-white p-10 rounded-2xl shadow-soft border border-gray-100 relative">
-                {/* Dekoratif İkon */}
+                {/* Decorative Icon */}
                 <div className="absolute -top-8 left-10">
                   <div className="w-16 h-16 bg-primary text-white rounded-2xl shadow-lg flex items-center justify-center transform rotate-6">
                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -316,9 +350,13 @@ export default function CorporatePage() {
                 </div>
 
                 <div className="pt-6">
-                  <h3 className="text-2xl font-bold text-text mb-6">Misyonumuz</h3>
+                  <h3 className="text-2xl font-bold text-text mb-6">
+                    {locale === 'en' ? 'Our Mission' : 'Misyonumuz'}
+                  </h3>
                   <p className="text-text-light text-lg leading-relaxed">
-                    Teknolojinin hızla ilerlediği günümüzde, dünya çapında teknolojiyi yakından takip ederek, sanayicilerimizin maliyetlerini en aza indirerek verimi arttıracak makinalarla hizmetlerine emin adımlarla devam etmesini sağlamak önceliğimizdir.
+                    {locale === 'en'
+                      ? "In today's rapidly advancing technology, our priority is to closely follow technology worldwide and ensure that our industrialists continue their services with confident steps by using machines that will minimize costs and increase efficiency."
+                      : 'Teknolojinin hızla ilerlediği günümüzde, dünya çapında teknolojiyi yakından takip ederek, sanayicilerimizin maliyetlerini en aza indirerek verimi arttıracak makinalarla hizmetlerine emin adımlarla devam etmesini sağlamak önceliğimizdir.'}
                   </p>
                 </div>
               </div>
@@ -327,7 +365,7 @@ export default function CorporatePage() {
         </div>
       </section>
 
-      {/* Şubelerimiz Section */}
+      {/* Our Branches Section */}
       <section className="py-24 bg-background relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0">
@@ -351,20 +389,20 @@ export default function CorporatePage() {
 
         <div className="container mx-auto px-4 relative">
           <div className="max-w-7xl mx-auto">
-            {/* Başlık */}
+            {/* Title */}
             <div className="text-center mb-16">
               <div className="inline-block bg-primary/10 px-4 py-2 rounded-full text-primary text-sm font-medium mb-6">
-                Şubelerimiz
+                {locale === 'en' ? 'Our Branches' : 'Şubelerimiz'}
               </div>
               <h2 className="text-4xl font-bold text-text mb-6">
-                Size En Yakın Şubemiz
+                {locale === 'en' ? 'Our Branch Nearest to You' : 'Size En Yakın Şubemiz'}
               </h2>
               <div className="h-1 w-20 bg-primary mx-auto"></div>
             </div>
 
-            {/* Şubeler Grid */}
+            {/* Branches Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* İkitelli Mağaza */}
+              {/* Ikitelli Store */}
               <div className="bg-white p-8 rounded-2xl shadow-soft border border-gray-100">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -373,9 +411,12 @@ export default function CorporatePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-text">İkitelli Mağaza</h3>
+                    <h3 className="text-xl font-bold text-text">
+                      {locale === 'en' ? 'Ikitelli Store' : 'İkitelli Mağaza'}
+                    </h3>
                     <p className="text-text-light mt-2">
-                      İkitelli OSB Demirciler Küçük San. Sit. B1 Blok No: 34 K2 Başakşehir - İstanbul / TÜRKİYE
+                      İkitelli OSB Demirciler Küçük San. Sit. B1 Blok No: 34 K2 Başakşehir - 
+                      {locale === 'en' ? 'Istanbul / TURKEY' : 'İstanbul / TÜRKİYE'}
                     </p>
                   </div>
                 </div>
@@ -384,24 +425,18 @@ export default function CorporatePage() {
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span>0212 671 09 10 pbx</span>
+                    <a href="tel:02126710910" className="hover:text-primary transition-colors">0212 671 09 10 pbx</a>
                   </div>
                   <div className="flex items-center gap-3">
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    <span>ikitelli@guvenalmakina.com.tr</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    <a href="#" className="text-primary hover:underline">Kroki için tıklayın</a>
+                    <a href="mailto:ikitelli@guvenalmakina.com.tr" className="hover:text-primary transition-colors">ikitelli@guvenalmakina.com.tr</a>
                   </div>
                 </div>
               </div>
 
-              {/* Bayrampaşa Mağaza */}
+              {/* Bayrampaşa Store */}
               <div className="bg-white p-8 rounded-2xl shadow-soft border border-gray-100">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -410,9 +445,12 @@ export default function CorporatePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-text">Bayrampaşa Mağaza</h3>
+                    <h3 className="text-xl font-bold text-text">
+                      {locale === 'en' ? 'Bayrampaşa Store' : 'Bayrampaşa Mağaza'}
+                    </h3>
                     <p className="text-text-light mt-2">
-                      İsmet Paşa Mah. Abdi İpekçi Cad. No: 113 / 2 Bayrampaşa - İstanbul / TÜRKİYE
+                      İsmet Paşa Mah. Abdi İpekçi Cad. No: 113 / 2 Bayrampaşa - 
+                      {locale === 'en' ? 'Istanbul / TURKEY' : 'İstanbul / TÜRKİYE'}
                     </p>
                   </div>
                 </div>
@@ -421,24 +459,18 @@ export default function CorporatePage() {
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span>0212 567 38 87</span>
+                    <a href="tel:02125673887" className="hover:text-primary transition-colors">0212 567 38 87</a>
                   </div>
                   <div className="flex items-center gap-3">
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    <span>bayrampasa@guvenalmakina.com.tr</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    <a href="#" className="text-primary hover:underline">Kroki için tıklayın</a>
+                    <a href="mailto:bayrampasa@guvenalmakina.com.tr" className="hover:text-primary transition-colors">bayrampasa@guvenalmakina.com.tr</a>
                   </div>
                 </div>
               </div>
 
-              {/* Kıraç Şube */}
+              {/* Kıraç Store */}
               <div className="bg-white p-8 rounded-2xl shadow-soft border border-gray-100">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -447,9 +479,12 @@ export default function CorporatePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-text">Kıraç Şube (Hırdavat)</h3>
+                    <h3 className="text-xl font-bold text-text">
+                      {locale === 'en' ? 'Kıraç Store (Hardware)' : 'Kıraç Şube (Hırdavat)'}
+                    </h3>
                     <p className="text-text-light mt-2">
-                      Çakmaklı Mh. Akçaburgaz Mevkii ALKOP Sanayi Sitesi A11 Blok No: 17 Kıraç - Hadımköy - Büyükçekmece - İSTANBUL - TÜRKİYE
+                      Çakmaklı Mh. Akçaburgaz Mevkii ALKOP Sanayi Sitesi A11 Blok No: 17 Kıraç - Hadımköy - Büyükçekmece - İSTANBUL - 
+                      {locale === 'en' ? 'TURKEY' : 'TÜRKİYE'}
                     </p>
                   </div>
                 </div>
@@ -458,19 +493,13 @@ export default function CorporatePage() {
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span>0212 858 00 81</span>
+                    <a href="tel:02128580081" className="hover:text-primary transition-colors">0212 858 00 81</a>
                   </div>
                   <div className="flex items-center gap-3">
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    <span>info@guvenalmakina.com.tr</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    <a href="#" className="text-primary hover:underline">Kroki için tıklayın</a>
+                    <a href="mailto:info@guvenalmakina.com.tr" className="hover:text-primary transition-colors">info@guvenalmakina.com.tr</a>
                   </div>
                 </div>
               </div>
@@ -484,9 +513,12 @@ export default function CorporatePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-text">Topçular (Hırdavat)</h3>
+                    <h3 className="text-xl font-bold text-text">
+                      {locale === 'en' ? 'Topçular (Hardware)' : 'Topçular (Hırdavat)'}
+                    </h3>
                     <p className="text-text-light mt-2">
-                      Rami Kışla Cd. Emintaş 3 San. Sit. No:56-57-58 Topçular - Eyüp İSTANBUL - TÜRKİYE
+                      Rami Kışla Cd. Emintaş 3 San. Sit. No:56-57-58 Topçular - Eyüp İSTANBUL - 
+                      {locale === 'en' ? 'TURKEY' : 'TÜRKİYE'}
                     </p>
                   </div>
                 </div>
@@ -495,19 +527,13 @@ export default function CorporatePage() {
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span>0212 501 53 81</span>
+                    <a href="tel:02125015381" className="hover:text-primary transition-colors">0212 501 53 81</a>
                   </div>
                   <div className="flex items-center gap-3">
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    <span>info@guvenalmakina.com.tr</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    <a href="#" className="text-primary hover:underline">Kroki için tıklayın</a>
+                    <a href="mailto:info@guvenalmakina.com.tr" className="hover:text-primary transition-colors">info@guvenalmakina.com.tr</a>
                   </div>
                 </div>
               </div>
@@ -516,7 +542,7 @@ export default function CorporatePage() {
         </div>
       </section>
 
-      {/* Markalarımız ve Çözüm Ortaklarımız Section */}
+      {/* Our Brands and Solution Partners Section */}
       <section className="py-24 bg-background relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0">
@@ -540,13 +566,13 @@ export default function CorporatePage() {
 
         <div className="container mx-auto px-4 relative">
           <div className="max-w-7xl mx-auto">
-            {/* Başlık */}
+            {/* Title */}
             <div className="text-center mb-16">
               <div className="inline-block bg-primary/10 px-4 py-2 rounded-full text-primary text-sm font-medium mb-6">
-                İş Ortaklarımız
+                {locale === 'en' ? 'Our Business Partners' : 'İş Ortaklarımız'}
               </div>
               <h2 className="text-4xl font-bold text-text mb-6">
-                Güçlü İş Birliklerimiz
+                {locale === 'en' ? 'Our Strong Collaborations' : 'Güçlü İş Birliklerimiz'}
               </h2>
               <div className="h-1 w-20 bg-primary mx-auto mb-12"></div>
 
@@ -560,7 +586,7 @@ export default function CorporatePage() {
                       : 'bg-gray-100 text-text hover:bg-gray-200'
                   }`}
                 >
-                  Markalarımız
+                  {locale === 'en' ? 'Our Brands' : 'Markalarımız'}
                 </button>
                 <button 
                   onClick={() => setActiveTab('partners')}
@@ -570,7 +596,7 @@ export default function CorporatePage() {
                       : 'bg-gray-100 text-text hover:bg-gray-200'
                   }`}
                 >
-                  Çözüm Ortaklarımız
+                  {locale === 'en' ? 'Solution Partners' : 'Çözüm Ortaklarımız'}
                 </button>
               </div>
             </div>
@@ -606,7 +632,7 @@ export default function CorporatePage() {
                     <div className="relative h-24 bg-white rounded-xl shadow-soft border border-gray-100 p-6 transition-all duration-300 hover:shadow-lg">
                       <Image
                         src={brand}
-                        alt={`Marka ${index + 1}`}
+                        alt={`Brand ${index + 1}`}
                         fill
                         className="object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300 p-4"
                       />
@@ -630,7 +656,7 @@ export default function CorporatePage() {
                     <div className="relative h-24 bg-white rounded-xl shadow-soft border border-gray-100 p-6 transition-all duration-300 hover:shadow-lg">
                       <Image
                         src={partner}
-                        alt={`Çözüm Ortağı ${index + 1}`}
+                        alt={`Solution Partner ${index + 1}`}
                         fill
                         className="object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300 p-4"
                       />
@@ -643,7 +669,7 @@ export default function CorporatePage() {
         </div>
       </section>
 
-      {/* Sertifikalarımız Section */}
+      {/* Our Certificates Section */}
       <section className="py-24 bg-background relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0">
@@ -667,39 +693,44 @@ export default function CorporatePage() {
 
         <div className="container mx-auto px-4 relative">
           <div className="max-w-7xl mx-auto">
-            {/* Başlık */}
+            {/* Title */}
             <div className="text-center mb-16">
               <div className="inline-block bg-primary/10 px-4 py-2 rounded-full text-primary text-sm font-medium mb-6">
-                Sertifikalarımız
+                {locale === 'en' ? "Our Certificates" : "Sertifikalarımız"}
               </div>
               <h2 className="text-4xl font-bold text-text mb-6">
-                Kalite ve Güvenilirlik
+                {locale === 'en' ? "Quality and Reliability" : "Kalite ve Güvenilirlik"}
               </h2>
-              <div className="h-1 w-20 bg-primary mx-auto"></div>
+              <p className="max-w-3xl mx-auto text-text-light">
+                {locale === 'en' 
+                  ? "We maintain our position as your reliable business partner with our quality certificates that prove our industry standards and reliability."
+                  : "Sektör standartlarımızı ve güvenilirliğimizi kanıtlayan kalite sertifikalarımız ile güvenilir iş ortağınız olma konumumuzu sürdürüyoruz."}
+              </p>
+              <div className="h-1 w-20 bg-primary mx-auto mt-12"></div>
             </div>
 
-            {/* Sertifikalar Grid */}
+            {/* Certificates Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
                   image: '/images/Sertifikalar/sertifika1.jpg',
-                  title: 'Marka Tescil Belgesi',
-                  description: 'Türk Patent ve Marka Kurumu'
+                  title: locale === 'en' ? 'Trademark Registration Certificate' : 'Marka Tescil Belgesi',
+                  description: locale === 'en' ? 'Turkish Patent and Trademark Office' : 'Türk Patent ve Marka Kurumu'
                 },
                 {
                   image: '/images/Sertifikalar/sertifika2.jpg',
-                  title: 'Marka Tescil Belgesi',
-                  description: 'Uluslararası Marka Tescili'
+                  title: locale === 'en' ? 'Trademark Registration Certificate' : 'Marka Tescil Belgesi',
+                  description: locale === 'en' ? 'International Trademark Registration' : 'Uluslararası Marka Tescili'
                 },
                 {
                   image: '/images/Sertifikalar/sertifika3.jpg',
-                  title: 'Marka Tescil Belgesi',
-                  description: 'Endüstriyel Tasarım Tescili'
+                  title: locale === 'en' ? 'Trademark Registration Certificate' : 'Marka Tescil Belgesi',
+                  description: locale === 'en' ? 'Industrial Design Registration' : 'Endüstriyel Tasarım Tescili'
                 },
                 {
                   image: '/images/Sertifikalar/sertifika4.jpg',
-                  title: 'Hizmet Yeterlilik Belgesi',
-                  description: 'Teknik Servis ve Hizmet Yeterliliği'
+                  title: locale === 'en' ? 'Service Qualification Certificate' : 'Servis Yeterlilik Sertifikası',
+                  description: locale === 'en' ? 'Technical Service and Service Qualification' : 'Teknik Servis ve Hizmet Yeterliliği'
                 }
               ].map((certificate, index) => (
                 <div key={index} className="group">
@@ -725,7 +756,8 @@ export default function CorporatePage() {
                     </div>
                     <div className="p-6 bg-white">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-text-light">Belge Tarihi: {[
+                        <span className="text-sm text-text-light">
+                          {locale === 'en' ? 'Certificate Date' : 'Sertifika Tarihi'}: {[
                           '21/11/2006',
                           '23/05/2008',
                           '18/08/2006',
@@ -775,7 +807,7 @@ export default function CorporatePage() {
             <div className="relative w-full h-full flex items-center justify-center">
               <Image
                 src={selectedImage}
-                alt="Sertifika Detay"
+                alt={locale === 'en' ? "Certificate Detail" : "Sertifika Detayı"}
                 fill
                 className="object-contain"
                 onClick={(e) => e.stopPropagation()}

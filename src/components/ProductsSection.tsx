@@ -1,102 +1,171 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useClientTranslation } from '@/lib/i18n';
 
-// Kategoriler
-const categories = [
+// Kategori tiplerini tanımla
+interface Category {
+  id: string;
+  nameKey: string;
+  defaultName: string;
+  slug: string;
+}
+
+interface MainCategory {
+  id: string;
+  nameKey: string;
+  defaultName: string;
+  slugs?: string[];
+}
+
+// Kategori tanımlarını statik olarak tanımla
+const categoryConfig: Category[] = [
   {
     id: 'cnc-dik-isleme',
-    name: 'CNC Dik İşleme Merkezleri',
+    nameKey: 'productsSection.cncMachiningCenters',
+    defaultName: 'CNC Dik İşleme Merkezleri',
     slug: 'cnc-dik-isleme'
   },
   {
     id: 'dalma-erozyon',
-    name: 'Dalma Erozyon Tezgahları',
+    nameKey: 'productsSection.edmMachines',
+    defaultName: 'Dalma Erozyon Tezgahları',
     slug: 'dalma-erozyon'
   },
   {
     id: 'kalipci-freze',
-    name: 'Kalıpçı Freze Tezgahları',
+    nameKey: 'productsSection.moldMillingMachines',
+    defaultName: 'Kalıpçı Freze Tezgahları',
     slug: 'kalipci-freze'
   },
   {
     id: 'universal-kalipci-freze',
-    name: 'Üniversal Kalıpçı Freze Tezgahları',
+    nameKey: 'productsSection.universalMillingMachines',
+    defaultName: 'Üniversal Kalıpçı Freze Tezgahları',
     slug: 'universal-kalipci-freze'
   },
   {
     id: 'koc-kafa-universal-freze',
-    name: 'Koç Kafa Universal Freze',
+    nameKey: 'productsSection.ramTypeUniversalMill',
+    defaultName: 'Koç Kafa Universal Freze',
     slug: 'koc-kafa-universal-freze'
   },
   {
     id: 'taslama',
-    name: 'Taşlama Tezgahları',
+    nameKey: 'productsSection.grindingMachines',
+    defaultName: 'Taşlama Tezgahları',
     slug: 'taslama'
   },
   {
     id: 'universal-torna',
-    name: 'Universal Torna Tezgahları',
+    nameKey: 'productsSection.lathes',
+    defaultName: 'Universal Torna Tezgahları',
     slug: 'universal-torna'
   },
   {
     id: 'masa-ustu-torna',
-    name: 'Masa Üstü Torna Tezgahları',
+    nameKey: 'productsSection.benchtopLathes',
+    defaultName: 'Masa Üstü Torna Tezgahları',
     slug: 'masa-ustu-torna'
   },
   {
     id: 'radyal-matkap',
-    name: 'Radyal Matkap Tezgahları',
+    nameKey: 'productsSection.radialDrills',
+    defaultName: 'Radyal Matkap Tezgahları',
     slug: 'radyal-matkap'
   },
   {
     id: 'sutunlu-matkap',
-    name: 'Şanzımanlı & Kayışlı Sütunlu Matkaplar',
+    nameKey: 'productsSection.columnDrills',
+    defaultName: 'Şanzımanlı & Kayışlı Sütunlu Matkaplar',
     slug: 'sutunlu-matkap'
   },
   {
     id: 'testere',
-    name: 'Şerit Testere Makineleri',
+    nameKey: 'productsSection.bandSaws',
+    defaultName: 'Şerit Testere Makineleri',
     slug: 'testere'
   },
   {
     id: 'kilavuz-cekme',
-    name: 'Kılavuz Çekme Tezgahları',
+    nameKey: 'productsSection.tappingMachines',
+    defaultName: 'Kılavuz Çekme Tezgahları',
     slug: 'kilavuz-cekme'
   },
   {
     id: 'makina-aksesuarlari',
-    name: 'Makina Aksesuarları',
+    nameKey: 'productsSection.machineAccessories',
+    defaultName: 'Makina Aksesuarları',
     slug: 'makina-aksesuarlari'
   }
 ];
 
-// Ana kategorileri grupla
-const mainCategories = [
-  { id: 'all', name: 'Tüm Kategoriler' },
-  { id: 'cnc', name: 'CNC Dik İşleme Merkezleri', slugs: ['cnc-dik-isleme'] },
-  { id: 'erozyon', name: 'Dalma Erozyon Tezgahları', slugs: ['dalma-erozyon'] },
-  { id: 'kalipci-freze', name: 'Kalıpçı Freze Tezgahları', slugs: ['kalipci-freze'] },
-  { id: 'universal-freze', name: 'Üniversal Kalıpçı Freze Tezgahları', slugs: ['universal-kalipci-freze'] },
-  { id: 'koc-kafa', name: 'Koç Kafa Universal Freze', slugs: ['koc-kafa-universal-freze'] },
-  { id: 'taslama', name: 'Taşlama Tezgahları', slugs: ['taslama'] },
-  { id: 'torna', name: 'Torna Tezgahları', slugs: ['universal-torna'] },
-  { id: 'masa-ustu-torna', name: 'Masa Üstü Torna Tezgahları', slugs: ['masa-ustu-torna'] },
-  { id: 'radyal-matkap', name: 'Radyal Matkap Tezgahları', slugs: ['radyal-matkap'] },
-  { id: 'sutunlu-matkap', name: 'Şanzımanlı & Kayışlı Sütunlu Matkaplar', slugs: ['sutunlu-matkap'] },
-  { id: 'testere', name: 'Şerit Testere Makineleri', slugs: ['testere'] },
-  { id: 'kilavuz', name: 'Kılavuz Çekme Tezgahları', slugs: ['kilavuz-cekme'] },
-  { id: 'aksesuarlar', name: 'Makina Aksesuarları', slugs: ['makina-aksesuarlari'] }
+// Ana kategori tanımları
+const mainCategoryConfig: MainCategory[] = [
+  { id: 'all', nameKey: 'productsSection.allCategories', defaultName: 'Tüm Kategoriler' },
+  { id: 'cnc', nameKey: 'productsSection.cncMachiningCenters', defaultName: 'CNC Dik İşleme Merkezleri', slugs: ['cnc-dik-isleme'] },
+  { id: 'erozyon', nameKey: 'productsSection.edmMachines', defaultName: 'Dalma Erozyon Tezgahları', slugs: ['dalma-erozyon'] },
+  { id: 'kalipci-freze', nameKey: 'productsSection.moldMillingMachines', defaultName: 'Kalıpçı Freze Tezgahları', slugs: ['kalipci-freze'] },
+  { id: 'universal-freze', nameKey: 'productsSection.universalMillingMachines', defaultName: 'Üniversal Kalıpçı Freze Tezgahları', slugs: ['universal-kalipci-freze'] },
+  { id: 'koc-kafa', nameKey: 'productsSection.ramTypeUniversalMill', defaultName: 'Koç Kafa Universal Freze', slugs: ['koc-kafa-universal-freze'] },
+  { id: 'taslama', nameKey: 'productsSection.grindingMachines', defaultName: 'Taşlama Tezgahları', slugs: ['taslama'] },
+  { id: 'torna', nameKey: 'productsSection.lathes', defaultName: 'Torna Tezgahları', slugs: ['universal-torna'] },
+  { id: 'masa-ustu-torna', nameKey: 'productsSection.benchtopLathes', defaultName: 'Masa Üstü Torna Tezgahları', slugs: ['masa-ustu-torna'] },
+  { id: 'radyal-matkap', nameKey: 'productsSection.radialDrills', defaultName: 'Radyal Matkap Tezgahları', slugs: ['radyal-matkap'] },
+  { id: 'sutunlu-matkap', nameKey: 'productsSection.columnDrills', defaultName: 'Şanzımanlı & Kayışlı Sütunlu Matkaplar', slugs: ['sutunlu-matkap'] },
+  { id: 'testere', nameKey: 'productsSection.bandSaws', defaultName: 'Şerit Testere Makineleri', slugs: ['testere'] },
+  { id: 'kilavuz', nameKey: 'productsSection.tappingMachines', defaultName: 'Kılavuz Çekme Tezgahları', slugs: ['kilavuz-cekme'] },
+  { id: 'aksesuarlar', nameKey: 'productsSection.machineAccessories', defaultName: 'Makina Aksesuarları', slugs: ['makina-aksesuarlari'] }
 ];
 
 export default function ProductsSection() {
+  const [isMounted, setIsMounted] = useState(false);
+  const { t, initialized } = useClientTranslation(['common']);
+  
+  // Client tarafında DOM hazır olduğunda
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Basit bir gettext fonksiyonu
+  const getTranslation = useCallback((key: string, defaultValue: string): string => {
+    if (!isMounted || !initialized) return defaultValue;
+    try {
+      return t(key, defaultValue);
+    } catch (error) {
+      console.error("Çeviri hatası:", error);
+      return defaultValue;
+    }
+  }, [isMounted, t, initialized]);
+
+  // Kategorileri memoize et (her render'da yeniden oluşturulmasını önle)
+  const categories = useMemo(() => {
+    if (!isMounted || !initialized) return [];
+    return categoryConfig.map(cat => ({
+      id: cat.id,
+      name: getTranslation(cat.nameKey, cat.defaultName),
+      slug: cat.slug
+    }));
+  }, [isMounted, getTranslation, initialized]);
+
+  // Ana kategorileri memoize et
+  const mainCategories = useMemo(() => {
+    if (!isMounted || !initialized) return [];
+    return mainCategoryConfig.map(cat => ({
+      id: cat.id,
+      name: getTranslation(cat.nameKey, cat.defaultName),
+      slugs: cat.slugs
+    }));
+  }, [isMounted, getTranslation, initialized]);
+
+  // Temel state'ler
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('all');
-  const [filteredCategories, setFilteredCategories] = useState(categories);
+  const [filteredCategories, setFilteredCategories] = useState<{id: string, name: string, slug: string}[]>([]);
   
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
@@ -109,29 +178,43 @@ export default function ProductsSection() {
     }
   );
 
-  // Kategori filtreleme fonksiyonu
+  // İlk yükleme ve activeTab değişikliklerinde filtrelenmiş kategorileri güncelle
   useEffect(() => {
-    if (activeTab === 'all') {
-      setFilteredCategories(categories);
-      if (emblaApi) {
-        emblaApi.scrollTo(0);
-        setSelectedIndex(0);
-      }
-    } else {
-      const selectedMainCategory = mainCategories.find(cat => cat.id === activeTab);
-      if (selectedMainCategory?.slugs) {
-        const filteredCats = categories.filter(category => {
-          return selectedMainCategory.slugs.some(slug => category.slug === slug);
-        });
-        setFilteredCategories(filteredCats);
-        
-        if (emblaApi && filteredCats.length > 0) {
+    if (!isMounted || !categories.length) return;
+
+    // Filtreleme işlemi
+    const updateFilteredCategories = () => {
+      if (activeTab === 'all') {
+        setFilteredCategories(categories);
+        if (emblaApi) {
           emblaApi.scrollTo(0);
           setSelectedIndex(0);
         }
+      } else {
+        const selectedMainCategory = mainCategories.find(cat => cat.id === activeTab);
+        if (selectedMainCategory?.slugs) {
+          const filteredCats = categories.filter(category => {
+            return selectedMainCategory.slugs?.some(slug => category.slug === slug);
+          });
+          setFilteredCategories(filteredCats);
+          
+          if (emblaApi && filteredCats.length > 0) {
+            emblaApi.scrollTo(0);
+            setSelectedIndex(0);
+          }
+        }
       }
+    };
+
+    updateFilteredCategories();
+  }, [activeTab, emblaApi, isMounted]);
+
+  // İlk yükleme için filtrelenmiş kategorileri ayarla
+  useEffect(() => {
+    if (isMounted && categories.length > 0 && filteredCategories.length === 0) {
+      setFilteredCategories(categories);
     }
-  }, [activeTab, emblaApi]);
+  }, [categories, isMounted, filteredCategories.length, mainCategories]);
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -158,6 +241,11 @@ export default function ProductsSection() {
       emblaApi.off('select', onSelect);
     };
   }, [emblaApi, onSelect]);
+
+  // Component monte edilmeden içeriği gösterme
+  if (!isMounted || !initialized) {
+    return null; // Sayfa yüklenirken veya çeviriler hazır değilken boş içerik göster
+  }
 
   return (
     <section className="py-16 bg-gray-900 relative overflow-hidden">
@@ -189,10 +277,10 @@ export default function ProductsSection() {
           {/* Section Header */}
           <div className="text-center mb-10 relative">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Ürün <span className="text-primary-400">Kategorilerimiz</span>
+              {getTranslation('productsSection.title', 'Ürün')} <span className="text-primary-400">{getTranslation('productsSection.titleHighlight', 'Kategorilerimiz')}</span>
             </h2>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Endüstriyel makina ihtiyaçlarınız için geniş ürün yelpazemiz ile hizmetinizdeyiz
+              {getTranslation('productsSection.description', 'Endüstriyel makina ihtiyaçlarınız için geniş ürün yelpazemiz ile hizmetinizdeyiz')}
             </p>
           </div>
 
@@ -246,7 +334,7 @@ export default function ProductsSection() {
           <div className="relative products-carousel">
             <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
               <div className="flex -ml-4">
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="sync">
                   {filteredCategories.length > 0 ? (
                     filteredCategories.map((category, index) => (
                       <div key={category.id} className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4">
@@ -288,7 +376,7 @@ export default function ProductsSection() {
                               {/* Card Content */}
                               <div className="p-6 flex-1 flex flex-col relative bg-gradient-to-br from-gray-800/40 via-gray-800/40 to-gray-900/40">
                                 <div className="flex items-center justify-between text-primary-400 font-medium group-hover:gap-2 transition-all">
-                                  <span className="text-sm">Detaylı İncele</span>
+                                  <span className="text-sm">{getTranslation('productsSection.viewDetails', 'Detaylı İncele')}</span>
                                   <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                   </svg>
@@ -309,7 +397,7 @@ export default function ProductsSection() {
                         <div className="h-full">
                           <div className="bg-gray-800/20 backdrop-blur-sm rounded-2xl shadow-lg relative overflow-hidden h-full flex flex-col border border-white/5 min-h-[300px]">
                             <div className="absolute inset-0 flex items-center justify-center text-white/30">
-                              <p>Bu kategoride ürün bulunmamaktadır</p>
+                              <p>{getTranslation('productsSection.emptyCategory', 'Bu kategoride ürün bulunmamaktadır')}</p>
                             </div>
                           </div>
                         </div>
@@ -363,7 +451,7 @@ export default function ProductsSection() {
               href="/urunler?filter=urunler"
               className="inline-flex items-center gap-2 bg-white/10 text-white hover:bg-white/20 px-8 py-4 rounded-xl font-medium transition-colors"
             >
-              Tüm Ürünlerimizi İnceleyin
+              {getTranslation('productsSection.viewAllProducts', 'Tüm Ürünlerimizi İnceleyin')}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
